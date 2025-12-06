@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  backend:
+    build: ./backend
+    ports:
+      - "3001:3001"
+    environment:
+      PORT: 3001
+      # SESSION_KEY: 9158 # Uncomment to fetch live data for Bahrain 2024
+      # OFFLINE: "true" # Uncomment to force offline mode
+      OPENF1_BASE: "https://api.openf1.org/v1"
+      REPLAY_SPEED_DEFAULT: 1.0
+    volumes:
+      - ./backend:/app
+      - /app/node_modules # Exclude node_modules from host mount
+    restart: unless-stopped
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules # Exclude node_modules from host mount
+    depends_on:
+      - backend
+    restart: unless-stopped

@@ -1,0 +1,24 @@
+{
+  "name": "f1-timesheet-backend",
+  "version": "1.0.0",
+  "description": "Backend for F1 Timesheet Replay",
+  "main": "src/server.js",
+  "scripts": {
+    "dev": "node src/server.js",
+    "start": "node src/server.js",
+    "fetch_session": "node scripts/fetch_session.js",
+    "generate_mock_feed": "node scripts/generate_mock_feed.js",
+    "test": "jest"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.19.2",
+    "node-fetch": "^2.7.0",
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0"
+  }
+}
