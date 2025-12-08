@@ -225,3 +225,176 @@ To add driver headshots:
 3. Format: JPG/PNG, recommended size: 300x300px
 4. If image is missing, system automatically shows colored initials as fallback
 
+
+---
+
+## Technical Deep Dive: Critical Bug Fixes
+
+### Problem 1: `forEach on undefined` Crashes
+
+**Root Cause**: The backend normalization code assumed all data arrays existed, but some sessions return empty arrays or missing fields.
+
+**Solution Implemented**:
+- Added comprehensive null/undefined guards for all array operations
+- Default empty arrays for missing endpoints: `const { laps = [], sectors = [], ... } = openf1Json;`
+- Guard every `.forEach()` with `if (!Array.isArray(data))` checks
+- Ensured `raceData.json` always contains all expected keys (even if empty arrays)
+
+**Files Modified**:
+- `backend/src/normalize.js` - Added guards around all array operations
+- `backend/src/replayEngine.js` - Added validation before processing events
+- `backend/scripts/fetch_session.js` - Ensured empty arrays written on fetch failures
+
+### Problem 2: Sector Times Not Displaying
+
+**Root Cause**: Code was looking for a separate `sectors` endpoint with `sector_duration` field, but OpenF1 actually includes sector times **directly in the lap data** as `duration_sector_1`, `duration_sector_2`, `duration_sector_3`.
+
+**Solution Implemented**:
+- Updated lap processing to extract sector times from lap object:
+  ```javascript
+  const sectorTimes = [
+    lap.duration_sector_1 !== undefined ? lap.duration_sector_1 : null,
+    lap.duration_sector_2 !== undefined ? lap.duration_sector_2 : null,
+    lap.duration_sector_3 !== undefined ? lap.duration_sector_3 : null,
+  ];
+  ```
+- Kept separate sectors endpoint processing as supplementary (for detailed segment data)
+- Frontend already had proper rendering logic, just needed correct data shape
+
+**Files Modified**:
+- `backend/src/normalize.js` - Lines 62-66: Extract sectors from lap data
+
+### Problem 3: Pit Stops Not Tracked
+
+**Root Cause**: Two issues:
+1. `is_pit_out_lap` flag in lap data was ignored
+2. Dedicated `/pit` endpoint was never fetched
+3. Pit counter in frontend only showed "P" indicator, not count
+
+**Solution Implemented**:
+- Extract `is_pit_out_lap` directly from lap data (line 77)
+- Added `/pit` endpoint to fetch scripts
+- Process pit endpoint data as dedicated pit events
+- Backend tracks `pitStopCount` per driver
+- Frontend displays numerical count instead of just indicator
+
+**Files Modified**:
+- `backend/src/normalize.js` - Lines 77, 177-200: Pit detection and processing
+- `backend/scripts/fetch_session.js` - Line 24: Added pit endpoint
+- `backend/src/replayEngine.js` - Lines 86, 201: Pit counter tracking
+- `frontend/src/components/DriverRow.jsx` - Lines 104-106: Display count
+
+### Problem 4: Position Column Not Updating
+
+**Root Cause**: Position events were being created but the WebSocket snapshot merging wasn't preserving race position data correctly.
+
+**Solution Verified**: Existing code already handles this correctly via position events (kind: 'position'). The replayEngine properly merges position updates into driver snapshots.
+
+**No Changes Needed** - Just needed to ensure position endpoint is fetched (already was).
+
+### Problem 5: Track Map Not Visible / Not Working
+
+**Root Cause**:
+1. Location endpoint wasn't being fetched
+2. Track map had no actual canvas dimensions
+3. No coordinate normalization logic
+4. Missing safety checks for missing location data
+
+**Solution Implemented**:
+- Added `/location` endpoint fetching (both scripts)
+- Implemented `parseXY()` function to handle various coordinate formats
+- Rebuilt TrackMap component with:
+  - Explicit 800x500 canvas
+  - Automatic bounds calculation from driver positions
+  - Proper coordinate-to-pixel transformation
+  - Fallback message when location data unavailable
+  - Team-colored driver markers with numbers
+
+**Files Modified**:
+- `backend/src/normalize.js` - Lines 4-14, 192-220: parseXY() and location processing
+- `backend/scripts/fetch_session.js` - Line 23: Added location endpoint
+- `backend/src/replayEngine.js` - Lines 85, 203-205: Location coordinate storage
+- `frontend/src/components/TrackMap.jsx` - Complete rebuild
+
+### Problem 6: Driver Details Panel Crashes
+
+**Root Cause**: Missing null checks and undefined field access.
+
+**Solution Implemented**:
+- Created `DriverAvatar` component with robust fallback logic
+- Added team-colored initials when headshot unavailable
+- Integrated safely into DriverDetail component with null checks
+
+**Files Modified**:
+- `frontend/src/components/DriverAvatar.jsx` - New component with fallback
+- `frontend/src/components/DriverDetail.jsx` - Safe integration
+
+### Data Flow Summary
+
+```
+OpenF1 API
+    ↓
+fetch_session.js → fetches all 8 endpoints (laps, sectors, stints, drivers, positions, location, pit, session)
+    ↓
+raceData.json → stored with all fields (even if empty arrays)
+    ↓
+normalize.js → processes all arrays safely, creates timeline events
+    ↓
+replayEngine.js → builds per-frame driver snapshots with:
+    - position (race standing)
+    - sectorTimes [s1, s2, s3]
+    - pitStopCount
+    - x, y (track coordinates)
+    - lap times, tyres, etc.
+    ↓
+WebSocket → streams snapshots to frontend
+    ↓
+React Components → display with null-safe rendering
+```
+
+### Testing Checklist
+
+To verify all fixes work:
+
+1. **Fetch a session with complete data** (e.g., 9158 - Bahrain 2024 Race):
+   ```bash
+   cd backend
+   npm run fetch_session 9158
+   ```
+   Expected: All endpoints return data, no errors
+
+2. **Fetch a session with missing data** (e.g., 9947 - incomplete session):
+   ```bash
+   npm run fetch_session 9947
+   ```
+   Expected: Some endpoints return 0 records, but no crashes. Empty arrays written to raceData.json.
+
+3. **Start backend**:
+   ```bash
+   npm run dev
+   ```
+   Expected: "Loaded X events, Y drivers" with no forEach errors
+
+4. **Start frontend** and test:
+   - ✅ Position column updates during replay
+   - ✅ S1, S2, S3 show times with color coding
+   - ✅ Pits column shows numerical count (1, 2, 3...)
+   - ✅ Track map displays with driver dots
+   - ✅ Clicking driver shows detail panel with avatar
+   - ✅ No console errors
+
+### API Endpoint Reference
+
+Based on OpenF1 v1 API (https://api.openf1.org/v1/):
+
+- `/laps` - Contains duration_sector_1/2/3, is_pit_out_lap, lap_duration
+- `/sectors` - Detailed segment timing (optional, for deeper analysis)
+- `/stints` - Tire compound info, stint lap ranges
+- `/drivers` - Driver metadata (number, name, team, headshot_url)
+- `/positions` - Race position by timestamp
+- `/location` - X, Y, Z coordinates for track mapping
+- `/pit` - Dedicated pit stop events with pit_duration
+- `/sessions` - Session metadata
+
+All endpoints accept `?session_key=XXXX` parameter.
+

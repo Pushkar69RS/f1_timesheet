@@ -28,7 +28,7 @@ function normalizeOpenF1(openf1Json) {
     return [];
   }
 
-  const { laps = [], sectors = [], stints = [], drivers = [], positions = [], location = [] } = openf1Json;
+  const { laps = [], sectors = [], stints = [], drivers = [], positions = [], location = [], pit = [] } = openf1Json;
 
   if (!Array.isArray(drivers)) {
     console.warn('normalizeOpenF1: drivers is not an array', typeof drivers);
@@ -56,8 +56,14 @@ function normalizeOpenF1(openf1Json) {
     const driverInfo = driverMap.get(lap.driver_number);
     if (!driverInfo) return;
 
-    const timestamp = parseOpenF1Date(lap.date_start); // Use lap.date_start
-    if (!timestamp) return; // Skip if timestamp is invalid
+    const timestamp = parseOpenF1Date(lap.date_start);
+    if (!timestamp) return;
+
+    const sectorTimes = [
+      lap.duration_sector_1 !== undefined && lap.duration_sector_1 !== null ? lap.duration_sector_1 : null,
+      lap.duration_sector_2 !== undefined && lap.duration_sector_2 !== null ? lap.duration_sector_2 : null,
+      lap.duration_sector_3 !== undefined && lap.duration_sector_3 !== null ? lap.duration_sector_3 : null,
+    ];
 
     events.push({
       kind: 'lap',
@@ -68,10 +74,13 @@ function normalizeOpenF1(openf1Json) {
       lapNumber: lap.lap_number,
       lapTimeSeconds: lap.lap_duration,
       timestamp: timestamp,
-      isPitLap: false, // Will be updated by stints
-      sectorTimes: [null, null, null], // Will be updated by sectors
-      tyres: null, // Will be updated by stints
-      position: null, // Will be updated by positions
+      isPitLap: lap.is_pit_out_lap || false,
+      sectorTimes: sectorTimes,
+      tyres: null,
+      position: null,
+      i1_speed: lap.i1_speed,
+      i2_speed: lap.i2_speed,
+      st_speed: lap.st_speed,
     });
     });
   }
@@ -162,6 +171,31 @@ function normalizeOpenF1(openf1Json) {
         });
       }
     }
+    });
+  }
+
+  // Process dedicated Pit endpoint data
+  if (!Array.isArray(pit)) {
+    console.warn('normalizeOpenF1: pit is not an array', typeof pit);
+  } else {
+    pit.forEach(pitStop => {
+      const driverInfo = driverMap.get(pitStop.driver_number);
+      if (!driverInfo) return;
+
+      const timestamp = parseOpenF1Date(pitStop.date);
+      if (!timestamp) return;
+
+      events.push({
+        kind: 'pit',
+        driverId: pitStop.driver_number,
+        driverName: driverInfo.driverName,
+        number: driverInfo.number,
+        team: driverInfo.team,
+        lapNumber: pitStop.lap_number,
+        timestamp: timestamp,
+        pitDuration: pitStop.pit_duration,
+        position: null,
+      });
     });
   }
 

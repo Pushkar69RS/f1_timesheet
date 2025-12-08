@@ -83,6 +83,7 @@ class ReplayEngine {
         drivers: `/drivers?session_key=${sessionKey}`,
         positions: `/positions?session_key=${sessionKey}`,
         location: `/location?session_key=${sessionKey}`,
+        pit: `/pit?session_key=${sessionKey}`,
         session: `/sessions?session_key=${sessionKey}`,
       };
 
@@ -95,14 +96,22 @@ class ReplayEngine {
             if (!response.ok) {
               throw new Error(`HTTP error! status: ${response.status} for ${endpoint}`);
             }
-            fetchedData[key] = await response.json();
-            console.log(`  Fetched ${fetchedData[key].length} records for ${key}.`);
-            break; // Success, break retry loop
+            const result = await response.json();
+            fetchedData[key] = Array.isArray(result) ? result : [result];
+            console.log(`  ✓ Fetched ${fetchedData[key].length} records for ${key}.`);
+            if (fetchedData[key].length === 0) {
+              console.log(`    ⚠ No data for ${key} in this session.`);
+            }
+            break;
           } catch (error) {
             console.warn(`Failed to fetch ${key} (retries left: ${retries - 1}):`, error.message);
             retries--;
-            if (retries === 0) throw error;
-            await new Promise(resolve => setTimeout(resolve, 2000)); // Wait 2 seconds before retry
+            if (retries === 0) {
+              console.error(`  ✗ All retries failed for ${key}, using empty array.`);
+              fetchedData[key] = [];
+            } else {
+              await new Promise(resolve => setTimeout(resolve, 2000));
+            }
           }
         }
       }

@@ -20,6 +20,8 @@ async function fetchSessionData(sessionKey) {
     stints: `/stints?session_key=${sessionKey}`,
     drivers: `/drivers?session_key=${sessionKey}`,
     positions: `/positions?session_key=${sessionKey}`,
+    location: `/location?session_key=${sessionKey}`,
+    pit: `/pit?session_key=${sessionKey}`,
     session: `/sessions?session_key=${sessionKey}`,
   };
 
@@ -31,11 +33,15 @@ async function fetchSessionData(sessionKey) {
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status} for ${endpoint}`);
       }
-      data[key] = await response.json();
-      console.log(`  Fetched ${data[key].length} records for ${key}.`);
+      const result = await response.json();
+      data[key] = Array.isArray(result) ? result : [result];
+      console.log(`  ✓ Fetched ${data[key].length} records for ${key}.`);
+      if (data[key].length === 0) {
+        console.log(`    ⚠ Warning: No data available for ${key} in this session.`);
+      }
     } catch (error) {
-      console.error(`Failed to fetch ${key}:`, error.message);
-      // Continue fetching other endpoints even if one fails
+      console.error(`  ✗ Failed to fetch ${key}:`, error.message);
+      data[key] = [];
     }
   }
 
