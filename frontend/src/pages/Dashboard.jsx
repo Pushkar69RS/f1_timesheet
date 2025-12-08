@@ -1,14 +1,16 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import TimesheetTable from './components/TimesheetTable';
-import Controls from './components/Controls';
-import ProgressBar from './components/ProgressBar';
-import DriverDetail from './components/DriverDetail';
-import TrackMap from './components/TrackMap';
+import { useNavigate } from 'react-router-dom';
+import TimesheetTable from '../components/TimesheetTable';
+import Controls from '../components/Controls';
+import ProgressBar from '../components/ProgressBar';
+import DriverDetail from '../components/DriverDetail';
+import TrackMap from '../components/TrackMap';
 
 const WS_URL = `ws://${window.location.hostname}:3001/ws`;
 const API_BASE_URL = `http://${window.location.hostname}:3001/api`;
 
-function App() {
+function Dashboard() {
+  const navigate = useNavigate();
   const [drivers, setDrivers] = useState({});
   const [sessionInfo, setSessionInfo] = useState(null);
   const [isPaused, setIsPaused] = useState(true);
@@ -25,13 +27,9 @@ function App() {
 
   const ws = useRef(null);
   const reconnectTimeout = useRef(null);
-  const driverBestLaps = useRef({}); // { driverId: { overall: time } }
-  const driverBestSectors = useRef({}); // { driverId: [s1, s2, s3] }
-  // globalBestLap and globalBestSectors are now state variables, not refs.
-  // globalBestLap.current = null;
-  // globalBestSectors.current = [null, null, null];
+  const driverBestLaps = useRef({});
+  const driverBestSectors = useRef({});
 
-  // Initialize dark mode from localStorage
   useEffect(() => {
     const savedMode = localStorage.getItem('darkMode');
     if (savedMode) {
@@ -41,7 +39,6 @@ function App() {
     }
   }, []);
 
-  // Apply dark mode class to body
   useEffect(() => {
     if (darkMode) {
       document.documentElement.classList.add('dark');
@@ -75,12 +72,8 @@ function App() {
       const message = JSON.parse(event.data);
       switch (message.type) {
         case 'snapshot':
-          // Reset best times on new snapshot (e.g., after seek/restart)
           driverBestLaps.current = {};
           driverBestSectors.current = {};
-          // globalBestLap and globalBestSectors are now state, updated below
-          // globalBestLap.current = null;
-          // globalBestSectors.current = [null, null, null];
 
           const initialDrivers = message.payload;
           const updatedDrivers = {};
@@ -89,7 +82,6 @@ function App() {
 
           Object.values(initialDrivers).forEach(driver => {
             updatedDrivers[driver.driverId] = { ...driver, flash: false, positionChanged: 0 };
-            // Initialize best times from snapshot
             driverBestLaps.current[driver.driverId] = { overall: driver.bestLapTime };
             driverBestSectors.current[driver.driverId] = [...driver.bestSectorTimes];
             if (driver.bestLapTime && (newGlobalBestLap === null || driver.bestLapTime < newGlobalBestLap)) {
@@ -112,7 +104,6 @@ function App() {
           setCurrentLap(message.payload.currentLap !== undefined ? message.payload.currentLap : currentLap);
           setTotalLaps(message.payload.totalLaps !== undefined ? message.payload.totalLaps : totalLaps);
           setTotalDurationMs(message.payload.totalDurationMs !== undefined ? message.payload.totalDurationMs : totalDurationMs);
-          // Update global bests from control_state if provided
           if (message.payload.globalBestLap !== undefined) setGlobalBestLap(message.payload.globalBestLap);
           if (message.payload.globalBestSectors !== undefined) setGlobalBestSectors(message.payload.globalBestSectors);
           break;
@@ -137,10 +128,9 @@ function App() {
       console.error('WebSocket error:', error);
       ws.current.close();
     };
-  }, [isPaused, replaySpeed, progress, currentLap, totalLaps, totalDurationMs]); // Added globalBestLap, globalBestSectors to dependency array
+  }, [isPaused, replaySpeed, progress, currentLap, totalLaps, totalDurationMs]);
 
   useEffect(() => {
-    // Fetch initial session info
     fetch(`${API_BASE_URL}/session-info`)
       .then(res => res.json())
       .then(data => {
@@ -195,6 +185,12 @@ function App() {
     <div className="min-h-screen flex flex-col p-4 bg-secondary text-app-text dark:bg-secondary-dark dark:text-app-text-dark transition-colors duration-300">
       <header className="flex justify-between items-center mb-6">
         <div className="flex items-center space-x-4">
+          <button
+            onClick={() => navigate('/')}
+            className="px-4 py-2 bg-[#E10600] hover:bg-[#B00500] text-white font-bold rounded transition-colors"
+          >
+            ← Home
+          </button>
           <h1 className="text-4xl font-extrabold text-primary dark:text-primary-dark">F1 Timesheet Replay</h1>
           {sessionInfo && (
             <span className="text-lg text-muted-text dark:text-muted-text-dark">
@@ -247,4 +243,4 @@ function App() {
   );
 }
 
-export default App;
+export default Dashboard;

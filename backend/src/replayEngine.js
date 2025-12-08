@@ -82,6 +82,7 @@ class ReplayEngine {
         stints: `/stints?session_key=${sessionKey}`,
         drivers: `/drivers?session_key=${sessionKey}`,
         positions: `/positions?session_key=${sessionKey}`,
+        location: `/location?session_key=${sessionKey}`,
         session: `/sessions?session_key=${sessionKey}`,
       };
 
@@ -198,6 +199,10 @@ class ReplayEngine {
         bestSectorTimes: [null, null, null],
         tyres: null,
         isPitLap: false,
+        pitStopCount: 0,
+        x: null,
+        y: null,
+        z: null,
         flash: false, // For UI animation
         positionChanged: 0, // -1 for down, 0 for no change, 1 for up
       };
@@ -450,6 +455,7 @@ class ReplayEngine {
       case 'pit':
         driver.isPitLap = true; // Mark as pit for the lap
         driver.tyres = event.tyres; // Update tyres immediately
+        driver.pitStopCount += 1; // Increment pit stop counter
         driver.flash = true; // Flash on pit event
         break;
       case 'position':
@@ -457,6 +463,11 @@ class ReplayEngine {
           driver.positionChanged = event.position < driver.position ? 1 : -1; // 1 for up, -1 for down
         }
         driver.position = event.position;
+        break;
+      case 'location':
+        driver.x = event.x;
+        driver.y = event.y;
+        driver.z = event.z;
         break;
     }
   }

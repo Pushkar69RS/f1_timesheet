@@ -11,7 +11,7 @@ const { parseOpenF1Date } = require('./utils');
  * @returns {Array<object>} An array of normalized event objects, sorted by timestamp.
  */
 function normalizeOpenF1(openf1Json) {
-  const { laps, sectors, stints, drivers, positions } = openf1Json;
+  const { laps, sectors, stints, drivers, positions, location } = openf1Json;
 
   const driverMap = new Map();
   drivers.forEach(d => {
@@ -152,6 +152,29 @@ function normalizeOpenF1(openf1Json) {
       timestamp: timestamp,
     });
   });
+
+  // Process Location data (X, Y coordinates for track map)
+  if (location && Array.isArray(location)) {
+    location.forEach(loc => {
+      const driverInfo = driverMap.get(loc.driver_number);
+      if (!driverInfo) return;
+
+      const timestamp = parseOpenF1Date(loc.date);
+      if (!timestamp) return; // Skip if timestamp is invalid
+
+      events.push({
+        kind: 'location',
+        driverId: loc.driver_number,
+        driverName: driverInfo.driverName,
+        number: driverInfo.number,
+        team: driverInfo.team,
+        x: loc.x,
+        y: loc.y,
+        z: loc.z,
+        timestamp: timestamp,
+      });
+    });
+  }
 
   // Sort all events by timestamp
   events.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());

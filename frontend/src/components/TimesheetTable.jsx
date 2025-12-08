@@ -26,7 +26,7 @@ const TimesheetTable = ({ drivers, driverBestLaps, driverBestSectors, globalBest
               <th className="py-3 px-4 text-left text-xs font-medium text-muted-text dark:text-muted-text-dark uppercase tracking-wider">S2</th>
               <th className="py-3 px-4 text-left text-xs font-medium text-muted-text dark:text-muted-text-dark uppercase tracking-wider">S3</th>
               <th className="py-3 px-4 text-left text-xs font-medium text-muted-text dark:text-muted-text-dark uppercase tracking-wider">Tyres</th>
-              <th className="py-3 px-4 text-left text-xs font-medium text-muted-text dark:text-muted-text-dark uppercase tracking-wider">Pit</th>
+              <th className="py-3 px-4 text-left text-xs font-medium text-muted-text dark:text-muted-text-dark uppercase tracking-wider">Pits</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200 dark:divide-gray-700">

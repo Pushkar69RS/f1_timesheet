@@ -101,7 +101,9 @@ const DriverRow = ({ driver, driverBestLaps, driverBestSectors, globalBestLap, g
           {driver.tyres || '-'}
         </span>
       </td>
-      <td className="py-2 px-4 text-center text-app-text dark:text-app-text-dark">{driver.isPitLap ? 'P' : ''}</td>
+      <td className="py-2 px-4 text-center text-app-text dark:text-app-text-dark">
+        {driver.pitStopCount > 0 ? driver.pitStopCount : '-'}
+      </td>
     </tr>
   );
 };
