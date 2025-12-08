@@ -16,10 +16,9 @@ async function fetchSessionData(sessionKey) {
 
   const endpoints = {
     laps: `/laps?session_key=${sessionKey}`,
-    sectors: `/sectors?session_key=${sessionKey}`,
     stints: `/stints?session_key=${sessionKey}`,
     drivers: `/drivers?session_key=${sessionKey}`,
-    positions: `/positions?session_key=${sessionKey}`,
+    position: `/position?session_key=${sessionKey}`,
     location: `/location?session_key=${sessionKey}`,
     pit: `/pit?session_key=${sessionKey}`,
     session: `/sessions?session_key=${sessionKey}`,

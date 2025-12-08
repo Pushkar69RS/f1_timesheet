@@ -28,7 +28,18 @@ function normalizeOpenF1(openf1Json) {
     return [];
   }
 
-  const { laps = [], sectors = [], stints = [], drivers = [], positions = [], location = [], pit = [] } = openf1Json;
+  const {
+    laps = [],
+    sectors = [],
+    stints = [],
+    drivers = [],
+    position = [],
+    positions = [],
+    location = [],
+    pit = []
+  } = openf1Json;
+
+  const positionData = position.length > 0 ? position : positions;
 
   if (!Array.isArray(drivers)) {
     console.warn('normalizeOpenF1: drivers is not an array', typeof drivers);
@@ -43,6 +54,9 @@ function normalizeOpenF1(openf1Json) {
       team: d.team_name,
       number: d.driver_number,
       code: d.name_acronym || d.driver_number,
+      headshot_url: d.headshot_url || null,
+      team_colour: d.team_colour || null,
+      country_code: d.country_code || null,
     });
   });
 
@@ -200,10 +214,10 @@ function normalizeOpenF1(openf1Json) {
   }
 
   // Process Positions
-  if (!Array.isArray(positions)) {
-    console.warn('normalizeOpenF1: positions is not an array', typeof positions);
+  if (!Array.isArray(positionData)) {
+    console.warn('normalizeOpenF1: position data is not an array', typeof positionData);
   } else {
-    positions.forEach(pos => {
+    positionData.forEach(pos => {
     const driverInfo = driverMap.get(pos.driver_number);
     if (!driverInfo) return;
 
