@@ -4,7 +4,7 @@ import TimesheetTable from '../components/TimesheetTable';
 import Controls from '../components/Controls';
 import ProgressBar from '../components/ProgressBar';
 import DriverDetail from '../components/DriverDetail';
-import TrackMap from '../components/TrackMap';
+import FinalPositions from '../components/FinalPositions';
 
 const WS_URL = `ws://${window.location.hostname}:3001/ws`;
 const API_BASE_URL = `http://${window.location.hostname}:3001/api`;
@@ -216,7 +216,7 @@ function Dashboard() {
             globalBestSectors={globalBestSectors}
             onDriverSelect={handleDriverSelect}
           />
-          <TrackMap drivers={drivers} />
+          <FinalPositions drivers={drivers} isVisible={progress === 100} />
         </div>
 
         <div className="lg:w-1/4 flex flex-col space-y-6">

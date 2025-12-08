@@ -7,8 +7,8 @@ services:
       - "3001:3001"
     environment:
       PORT: 3001
-      # SESSION_KEY: 9158 # Uncomment to fetch live data for Bahrain 2024
-      # OFFLINE: "true" # Uncomment to force offline mode
+      SESSION_KEY: 9158
+      OFFLINE: "false"
       OPENF1_BASE: "https://api.openf1.org/v1"
       REPLAY_SPEED_DEFAULT: 1.0
     volumes:
