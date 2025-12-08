@@ -1,5 +1,6 @@
 import React from 'react';
 import { getTeamColor } from '../utils/teamColors';
+import DriverAvatar from './DriverAvatar';
 
 const DriverDetail = ({ driver }) => {
   if (!driver) {
@@ -15,11 +16,14 @@ const DriverDetail = ({ driver }) => {
   return (
     <div className="bg-secondary dark:bg-secondary-dark p-4 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700">
       <div className="flex items-center space-x-4 mb-4">
-        <div className="w-12 h-12 rounded-full flex items-center justify-center text-white text-xl font-bold" style={{ backgroundColor: teamColor }}>
-          {driver.number}
-        </div>
+        <DriverAvatar driver={driver} size="xl" />
         <div>
-          <h3 className="text-xl font-bold text-app-text dark:text-app-text-dark">{driver.driverName}</h3>
+          <div className="flex items-center gap-2 mb-1">
+            <div className="w-10 h-10 rounded-full flex items-center justify-center text-white text-lg font-bold" style={{ backgroundColor: teamColor }}>
+              {driver.number}
+            </div>
+            <h3 className="text-xl font-bold text-app-text dark:text-app-text-dark">{driver.driverName}</h3>
+          </div>
           <p className="text-muted-text dark:text-muted-text-dark">{driver.team}</p>
         </div>
       </div>

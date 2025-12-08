@@ -157,8 +157,16 @@ class ReplayEngine {
     }
 
     this.events = normalizeOpenF1(rawData);
+
+    if (!Array.isArray(this.events)) {
+      console.warn('ReplayEngine: normalizeOpenF1 returned non-array', typeof this.events);
+      this.events = [];
+    }
+
     this.sessionInfo = rawData.session && rawData.session.length > 0 ? rawData.session[0] : null;
-    this.driversData = rawData.drivers || [];
+    this.driversData = Array.isArray(rawData.drivers) ? rawData.drivers : [];
+
+    console.log(`Loaded ${this.events.length} events, ${this.driversData.length} drivers`);
 
     if (this.events.length > 0) {
       const firstEventTime = this.events[0].timestamp.getTime();

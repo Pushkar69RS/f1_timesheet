@@ -1,6 +1,18 @@
 // backend/src/normalize.js
 const { parseOpenF1Date } = require('./utils');
 
+function parseXY(value) {
+  if (!value) return null;
+  if (typeof value === 'object' && value !== null) {
+    if ('x' in value && 'y' in value) return { x: Number(value.x), y: Number(value.y) };
+    if ('lon' in value && 'lat' in value) return { x: Number(value.lon), y: Number(value.lat) };
+  }
+  const s = String(value).trim();
+  const parts = s.split(/[,\s|]+/).map(p => Number(p)).filter(n => !Number.isNaN(n));
+  if (parts.length >= 2) return { x: parts[0], y: parts[1] };
+  return null;
+}
+
 /**
  * Normalizes raw OpenF1 API data into a consistent event model.
  * This function processes various OpenF1 endpoints (laps, sectors, stints, drivers, positions)
@@ -11,7 +23,17 @@ const { parseOpenF1Date } = require('./utils');
  * @returns {Array<object>} An array of normalized event objects, sorted by timestamp.
  */
 function normalizeOpenF1(openf1Json) {
-  const { laps, sectors, stints, drivers, positions, location } = openf1Json;
+  if (!openf1Json || typeof openf1Json !== 'object') {
+    console.warn('normalizeOpenF1: Invalid input data');
+    return [];
+  }
+
+  const { laps = [], sectors = [], stints = [], drivers = [], positions = [], location = [] } = openf1Json;
+
+  if (!Array.isArray(drivers)) {
+    console.warn('normalizeOpenF1: drivers is not an array', typeof drivers);
+    return [];
+  }
 
   const driverMap = new Map();
   drivers.forEach(d => {
@@ -20,13 +42,17 @@ function normalizeOpenF1(openf1Json) {
       driverName: d.full_name,
       team: d.team_name,
       number: d.driver_number,
+      code: d.name_acronym || d.driver_number,
     });
   });
 
   const events = [];
 
   // Process Laps
-  laps.forEach(lap => {
+  if (!Array.isArray(laps)) {
+    console.warn('normalizeOpenF1: laps is not an array', typeof laps);
+  } else {
+    laps.forEach(lap => {
     const driverInfo = driverMap.get(lap.driver_number);
     if (!driverInfo) return;
 
@@ -47,13 +73,14 @@ function normalizeOpenF1(openf1Json) {
       tyres: null, // Will be updated by stints
       position: null, // Will be updated by positions
     });
-  });
+    });
+  }
 
   // Process Sectors and merge with Laps
-  // It's important to process sectors after laps if we want to merge them.
-  // However, if a lap event was skipped due to null date_start, a sector event might still be valid.
-  // Let's create separate sector events if no matching lap event exists.
-  sectors.forEach(sector => {
+  if (!Array.isArray(sectors)) {
+    console.warn('normalizeOpenF1: sectors is not an array', typeof sectors);
+  } else {
+    sectors.forEach(sector => {
     const driverInfo = driverMap.get(sector.driver_number);
     if (!driverInfo) return;
 
@@ -90,10 +117,14 @@ function normalizeOpenF1(openf1Json) {
         position: null,
       });
     }
-  });
+    });
+  }
 
   // Process Stints and merge with Laps/Pit events
-  stints.forEach(stint => {
+  if (!Array.isArray(stints)) {
+    console.warn('normalizeOpenF1: stints is not an array', typeof stints);
+  } else {
+    stints.forEach(stint => {
     const driverInfo = driverMap.get(stint.driver_number);
     if (!driverInfo) return;
 
@@ -131,10 +162,14 @@ function normalizeOpenF1(openf1Json) {
         });
       }
     }
-  });
+    });
+  }
 
   // Process Positions
-  positions.forEach(pos => {
+  if (!Array.isArray(positions)) {
+    console.warn('normalizeOpenF1: positions is not an array', typeof positions);
+  } else {
+    positions.forEach(pos => {
     const driverInfo = driverMap.get(pos.driver_number);
     if (!driverInfo) return;
 
@@ -151,16 +186,24 @@ function normalizeOpenF1(openf1Json) {
       lapNumber: pos.lap_number,
       timestamp: timestamp,
     });
-  });
+    });
+  }
 
   // Process Location data (X, Y coordinates for track map)
-  if (location && Array.isArray(location)) {
+  if (!Array.isArray(location)) {
+    console.warn('normalizeOpenF1: location is not an array', typeof location);
+  } else {
     location.forEach(loc => {
       const driverInfo = driverMap.get(loc.driver_number);
       if (!driverInfo) return;
 
       const timestamp = parseOpenF1Date(loc.date);
-      if (!timestamp) return; // Skip if timestamp is invalid
+      if (!timestamp) return;
+
+      const coords = parseXY(loc);
+      if (!coords || isNaN(coords.x) || isNaN(coords.y)) {
+        return;
+      }
 
       events.push({
         kind: 'location',
@@ -168,9 +211,9 @@ function normalizeOpenF1(openf1Json) {
         driverName: driverInfo.driverName,
         number: driverInfo.number,
         team: driverInfo.team,
-        x: loc.x,
-        y: loc.y,
-        z: loc.z,
+        x: coords.x,
+        y: coords.y,
+        z: loc.z || null,
         timestamp: timestamp,
       });
     });
@@ -184,4 +227,5 @@ function normalizeOpenF1(openf1Json) {
 
 module.exports = {
   normalizeOpenF1,
+  parseXY,
 };

@@ -35,9 +35,12 @@ const LandingPage = () => {
     <div className="min-h-screen bg-black text-white">
       <header className="fixed top-0 left-0 right-0 z-50 bg-black bg-opacity-95 backdrop-blur-sm border-b border-gray-800">
         <div className="container mx-auto px-6 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold tracking-wider">
-            <span className="text-[#E10600]">PACE</span>TRACER
-          </h1>
+          <div className="flex items-center gap-4">
+            <img src="/assets/f1-logo.webp" alt="F1 Logo" className="h-10 w-auto" />
+            <h1 className="text-2xl font-bold tracking-wider">
+              <span className="text-[#E10600]">PACE</span>TRACER
+            </h1>
+          </div>
           <button
             onClick={() => navigate('/dashboard')}
             className="px-6 py-2 bg-[#E10600] hover:bg-[#B00500] text-white font-bold rounded transition-all duration-300 transform hover:scale-105"
@@ -54,7 +57,15 @@ const LandingPage = () => {
           backgroundSize: '100% 4px'
         }}></div>
 
-        <div className="relative z-10 text-center px-6 max-w-5xl">
+        <div className="relative z-10 text-center px-6 max-w-6xl">
+          <div className="mb-8 flex justify-center">
+            <img
+              src="/assets/car.png"
+              alt="F1 Car"
+              className="w-64 md:w-96 h-auto animate-pulse"
+              style={{ filter: 'drop-shadow(0 0 30px rgba(225, 6, 0, 0.5))' }}
+            />
+          </div>
           <h1 className="text-6xl md:text-8xl font-black mb-6 tracking-tighter">
             <span className="text-[#E10600]">PACE</span>TRACER
           </h1>
@@ -88,7 +99,12 @@ const LandingPage = () => {
 
           <div className="grid md:grid-cols-2 gap-12 max-w-5xl mx-auto">
             <div className="bg-gradient-to-br from-gray-900 to-black border border-gray-800 rounded-lg p-8 text-center transform hover:scale-105 transition-all duration-300 shadow-2xl">
-              <div className="text-6xl mb-6">🏆</div>
+              <div className="flex justify-center mb-6">
+                <svg className="w-24 h-24 text-yellow-500" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+                  <path d="M12 6L10 10H8L11 13L10 16H14L13 13L16 10H14L12 6Z" fill="#FFD700"/>
+                </svg>
+              </div>
               <h3 className="text-2xl font-bold mb-4 text-[#E10600]">World Drivers' Championship</h3>
               <p className="text-gray-400 leading-relaxed">
                 The most coveted individual trophy in motorsport. Awarded annually to the driver who accumulates the most championship points throughout the season. A testament to skill, consistency, and determination.
@@ -96,7 +112,11 @@ const LandingPage = () => {
             </div>
 
             <div className="bg-gradient-to-br from-gray-900 to-black border border-gray-800 rounded-lg p-8 text-center transform hover:scale-105 transition-all duration-300 shadow-2xl">
-              <div className="text-6xl mb-6">🏆</div>
+              <div className="flex justify-center mb-6">
+                <svg className="w-24 h-24 text-silver-400" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M6 3H18V5H20C21.11 5 22 5.89 22 7V11C22 12.11 21.11 13 20 13H19.82C19.4 14.92 17.84 16.39 15.97 16.77L17 21H7L8.03 16.77C6.16 16.39 4.6 14.92 4.18 13H4C2.89 13 2 12.11 2 11V7C2 5.89 2.89 5 4 5H6V3M8 5H16V9.68C16 11.5 14.5 13 12.68 13H11.32C9.5 13 8 11.5 8 9.68V5M4 7V11H6V7H4M18 7V11H20V7H18Z" fill="#C0C0C0"/>
+                </svg>
+              </div>
               <h3 className="text-2xl font-bold mb-4 text-[#E10600]">World Constructors' Championship</h3>
               <p className="text-gray-400 leading-relaxed">
                 The pinnacle of team achievement in Formula 1. Awarded to the constructor who scores the most combined points from both drivers. A measure of engineering excellence and teamwork.
