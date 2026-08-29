@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import TimesheetTable from '../components/TimesheetTable';
 import TrackMap from '../components/TrackMap';
 import Controls from '../components/Controls';
@@ -63,14 +63,32 @@ function Dashboard() {
   const driverBestLaps = useRef({});
   const driverBestSectors = useRef({});
 
+  const [searchParams] = useSearchParams();
+
   useEffect(() => {
-    const savedMode = localStorage.getItem('darkMode');
-    if (savedMode !== null) {
-      setDarkMode(JSON.parse(savedMode));
-    } else {
+    const compareParam = searchParams.get('compare');
+    if (compareParam === 'true') setIsCompareOpen(true);
+
+    const driverParam = searchParams.get('driver');
+    if (driverParam) setSelectedDriverId(driverParam);
+
+    const finishedParam = searchParams.get('finished');
+    if (finishedParam === 'true') setProgress(100);
+
+    const themeParam = searchParams.get('theme');
+    if (themeParam === 'light') {
+      setDarkMode(false);
+    } else if (themeParam === 'dark') {
       setDarkMode(true);
+    } else {
+      const savedMode = localStorage.getItem('darkMode');
+      if (savedMode !== null) {
+        setDarkMode(JSON.parse(savedMode));
+      } else {
+        setDarkMode(true);
+      }
     }
-  }, []);
+  }, [searchParams]);
 
   useEffect(() => {
     if (darkMode) {

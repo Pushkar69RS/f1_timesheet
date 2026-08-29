@@ -12,15 +12,23 @@
 
 ---
 
-## 📸 Screenshots Showcase
+## 📸 Feature Showcase Gallery
 
-| **2026 Telemetry Dashboard (Bahrain GP)** | **2026 Landing Page & Specs** |
+| **1. 2026 Telemetry Dashboard (Bahrain GP - Dark)** | **2. Broadcast Light Theme (Monaco GP)** |
 | :---: | :---: |
-| ![Bahrain GP Telemetry Dashboard](screenshots/03_dashboard_bahrain_gp.png) | ![Landing Page Hero](screenshots/01_landing_page_hero.png) |
+| ![Bahrain GP Dark Mode](screenshots/03_dashboard_dark_bahrain.png) | ![Monaco GP Light Mode](screenshots/04_dashboard_light_monaco.png) |
 
-| **24-Round 2026 Calendar Grid** | **Silverstone Circuit Replay** |
+| **3. Head-to-Head Telemetry Comparison Modal** | **4. Live Driver Hybrid Telemetry (#44 Hamilton)** |
 | :---: | :---: |
-| ![2026 F1 Calendar](screenshots/02_landing_page_calendar.png) | ![Silverstone Circuit Replay](screenshots/04_dashboard_silverstone_gp.png) |
+| ![Comparison Modal](screenshots/05_head_to_head_comparison.png) | ![Driver Telemetry Card](screenshots/06_driver_hybrid_telemetry.png) |
+
+| **5. 2026 Engine & Aero Regulation Showcase** | **6. Interactive 24-Round Calendar Grid** |
+| :---: | :---: |
+| ![Landing Page Hero](screenshots/01_landing_hero_regulations.png) | ![2026 Calendar Grid](screenshots/02_calendar_and_constructors.png) |
+
+| **7. Official Race Classification & FIA Points** | **8. Suzuka Figure-8 Circuit Replay** |
+| :---: | :---: |
+| ![Race Classification Points](screenshots/07_race_classification_points.png) | ![Suzuka Circuit Replay](screenshots/09_suzuka_figure_eight.png) |
 
 ---
 
