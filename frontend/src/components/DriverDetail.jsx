@@ -141,6 +141,16 @@ const DriverDetail = ({ driver }) => {
           </div>
         </div>
       )}
+
+      {/* Action Button: Compare */}
+      <div className="mt-4 pt-3 border-t border-gray-200 dark:border-gray-800">
+        <button
+          onClick={() => onOpenCompare && onOpenCompare(driver.driverId || driver.number)}
+          className="w-full py-2 px-3 rounded-lg bg-red-600/10 hover:bg-red-600/20 text-red-600 dark:text-red-400 border border-red-600/30 text-xs font-mono font-bold flex items-center justify-center gap-2 transition-all active:scale-95 shadow-sm"
+        >
+          <span>⚔️</span> Compare #{driverNumber} {driverName} with Rival
+        </button>
+      </div>
     </div>
   );
 };

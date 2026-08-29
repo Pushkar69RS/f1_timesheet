@@ -386,7 +386,10 @@ function Dashboard() {
           />
 
           {/* Selected Driver Telemetry Card */}
-          <DriverDetail driver={selectedDriver} />
+          <DriverDetail
+            driver={selectedDriver}
+            onOpenCompare={() => setIsCompareOpen(true)}
+          />
         </div>
       </div>
 
