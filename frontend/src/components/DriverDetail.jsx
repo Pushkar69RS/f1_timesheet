@@ -2,7 +2,7 @@ import { getTeamColor, getTyreStyle } from '../utils/teamColors';
 import { formatTime } from '../utils/formatTime';
 import DriverAvatar from './DriverAvatar';
 
-const DriverDetail = ({ driver }) => {
+const DriverDetail = ({ driver, onOpenCompare = () => {} }) => {
   if (!driver) {
     return (
       <div className="bg-white dark:bg-[#111622] p-6 rounded-xl shadow-lg border border-gray-200 dark:border-gray-800 text-center text-gray-500 dark:text-gray-400 flex flex-col items-center justify-center min-h-[220px] transition-colors">
