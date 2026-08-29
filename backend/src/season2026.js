@@ -1,5 +1,5 @@
 // backend/src/season2026.js
-// Official 2026 FIA Formula 1 World Championship Calendar, Teams, Drivers & Weather
+// Official 2026 FIA Formula 1 World Championship Calendar, Teams, Drivers & Calibrated Race Simulations
 
 const SEASON_2026_CALENDAR = [
   { round: 1, key: '2026-01', name: 'Australian Grand Prix', circuit: 'Albert Park Circuit', circuitShort: 'Melbourne', location: 'Melbourne, Australia', date: 'March 13–15, 2026', laps: 58, lengthKm: 5.278, flag: '🇦🇺', weather: { trackTemp: 34, airTemp: 24, humidity: 48, windSpeed: 14, windDir: 'SW', rainRisk: 10, condition: 'Dry' } },
@@ -138,15 +138,6 @@ const DRIVERS_2026 = [
     headshot_url: 'https://media.formula1.com/d_driver_fallback_image.png/content/dam/fom-website/drivers/G/GABBOR01_Gabriel_Bortoleto/gabbor01.png.transform/1col/image.png',
   },
   {
-    driver_number: 23,
-    full_name: 'Alexander Albon',
-    name_acronym: 'ALB',
-    team_name: 'Williams',
-    team_colour: '64C4FF',
-    country_code: 'THA',
-    headshot_url: 'https://media.formula1.com/d_driver_fallback_image.png/content/dam/fom-website/drivers/A/ALEALB01_Alexander_Albon/alealb01.png.transform/1col/image.png',
-  },
-  {
     driver_number: 55,
     full_name: 'Carlos Sainz',
     name_acronym: 'SAI',
@@ -154,6 +145,15 @@ const DRIVERS_2026 = [
     team_colour: '64C4FF',
     country_code: 'ESP',
     headshot_url: 'https://media.formula1.com/d_driver_fallback_image.png/content/dam/fom-website/drivers/C/CARSAI01_Carlos_Sainz/carsai01.png.transform/1col/image.png',
+  },
+  {
+    driver_number: 23,
+    full_name: 'Alexander Albon',
+    name_acronym: 'ALB',
+    team_name: 'Williams',
+    team_colour: '64C4FF',
+    country_code: 'THA',
+    headshot_url: 'https://media.formula1.com/d_driver_fallback_image.png/content/dam/fom-website/drivers/A/ALEALB01_Alexander_Albon/alealb01.png.transform/1col/image.png',
   },
   {
     driver_number: 10,
@@ -211,9 +211,37 @@ const DRIVERS_2026 = [
   },
 ];
 
+// Calibrated realistic finish hierarchies for all 24 rounds of the 2026 season
+const RACE_FINISH_PROFILES_2026 = {
+  '2026-01': [4, 44, 16, 1, 81, 63, 14, 55, 12, 27, 23, 5, 30, 10, 22, 18, 31, 87, 7, 6],   // Melbourne: Norris win
+  '2026-02': [44, 1, 16, 4, 63, 81, 55, 14, 12, 30, 23, 27, 10, 5, 22, 18, 31, 87, 7, 6],   // Shanghai: Hamilton win
+  '2026-03': [1, 4, 81, 16, 44, 63, 55, 14, 12, 30, 23, 27, 5, 10, 22, 18, 31, 87, 7, 6],   // Suzuka: Verstappen win
+  '2026-04': [16, 44, 1, 4, 63, 81, 14, 55, 12, 30, 27, 23, 5, 10, 22, 18, 31, 87, 7, 6],   // Bahrain: Leclerc win
+  '2026-05': [1, 81, 4, 44, 63, 16, 55, 14, 12, 30, 23, 10, 27, 5, 22, 18, 31, 87, 7, 6],   // Jeddah: Verstappen win
+  '2026-06': [4, 16, 1, 44, 81, 63, 55, 14, 12, 30, 23, 5, 10, 27, 22, 18, 31, 87, 7, 6],   // Miami: Norris win, Bortoleto P12 recovery drive
+  '2026-07': [16, 44, 1, 4, 81, 63, 55, 14, 12, 30, 27, 23, 5, 10, 22, 18, 31, 87, 7, 6],   // Imola: Ferrari 1-2
+  '2026-08': [16, 44, 4, 81, 1, 63, 14, 55, 12, 23, 27, 30, 5, 10, 22, 18, 31, 87, 7, 6],   // Monaco: Leclerc pole-to-win
+  '2026-09': [1, 44, 4, 16, 63, 14, 81, 55, 12, 30, 27, 23, 5, 10, 22, 18, 31, 87, 7, 6],   // Barcelona: Verstappen win
+  '2026-10': [44, 1, 4, 63, 16, 81, 55, 14, 12, 23, 27, 30, 5, 10, 22, 18, 31, 87, 7, 6],   // Montreal: Hamilton win
+  '2026-11': [1, 4, 16, 81, 44, 63, 55, 14, 12, 30, 27, 23, 5, 10, 22, 18, 31, 87, 7, 6],   // Spielberg: Verstappen win
+  '2026-12': [44, 4, 63, 1, 16, 81, 14, 12, 55, 27, 23, 30, 5, 10, 22, 18, 31, 87, 7, 6],   // Silverstone: Hamilton win
+  '2026-13': [1, 16, 44, 81, 4, 63, 55, 14, 12, 30, 27, 23, 5, 10, 22, 18, 31, 87, 7, 6],   // Spa: Verstappen win
+  '2026-14': [81, 4, 44, 16, 14, 1, 63, 55, 12, 27, 23, 30, 5, 10, 22, 18, 31, 87, 7, 6],   // Budapest: Piastri win
+  '2026-15': [1, 4, 81, 44, 63, 16, 55, 14, 12, 30, 27, 23, 5, 10, 22, 18, 31, 87, 7, 6],   // Zandvoort: Verstappen win
+  '2026-16': [16, 44, 4, 1, 81, 63, 55, 14, 12, 23, 27, 30, 5, 10, 22, 18, 31, 87, 7, 6],   // Monza: Leclerc win, Ferrari 1-2
+  '2026-17': [81, 16, 1, 63, 44, 4, 55, 14, 12, 23, 27, 30, 5, 10, 22, 18, 31, 87, 7, 6],   // Baku: Piastri win
+  '2026-18': [4, 16, 44, 81, 1, 63, 55, 14, 12, 23, 27, 30, 5, 10, 22, 18, 31, 87, 7, 6],   // Singapore: Norris win
+  '2026-19': [1, 44, 4, 16, 63, 81, 55, 14, 12, 30, 27, 23, 5, 10, 22, 18, 31, 87, 7, 6],   // Austin: Verstappen win
+  '2026-20': [44, 1, 4, 16, 55, 63, 81, 14, 12, 30, 27, 23, 5, 10, 22, 18, 31, 87, 7, 6],   // Mexico: Hamilton win
+  '2026-21': [44, 4, 1, 16, 63, 81, 14, 55, 12, 5, 27, 23, 30, 10, 22, 18, 31, 87, 7, 6],   // Brazil: Hamilton win, Bortoleto P10 points!
+  '2026-22': [1, 63, 44, 16, 4, 81, 55, 14, 12, 23, 27, 30, 5, 10, 22, 18, 31, 87, 7, 6],   // Vegas: Verstappen win
+  '2026-23': [1, 81, 4, 63, 44, 16, 55, 14, 12, 30, 27, 23, 5, 10, 22, 18, 31, 87, 7, 6],   // Qatar: Verstappen win
+  '2026-24': [4, 1, 44, 16, 63, 81, 55, 14, 12, 30, 27, 23, 5, 10, 22, 18, 31, 87, 7, 6],   // Abu Dhabi: Norris World Championship win
+};
+
 /**
  * Generates an event-driven race replay timeline for any 2026 Grand Prix
- * with authentic lap pacing, pit stop strategies, tyre degradation, and incident events.
+ * with authentic lap pacing, pit stop strategies, tyre degradation, and calibrated finish orders.
  */
 function generate2026RaceData(sessionKey = '2026-12') {
   const round = SEASON_2026_CALENDAR.find(r => r.key === sessionKey) || SEASON_2026_CALENDAR[11];
@@ -241,15 +269,23 @@ function generate2026RaceData(sessionKey = '2026-12') {
 
   const baseTimestamp = new Date('2026-07-05T14:00:00.000Z').getTime();
 
-  let currentPositions = DRIVERS_2026.map((d, index) => ({
-    driverId: d.driver_number,
-    pos: index + 1,
-    tyre: index < 8 ? 'SOFT' : (index % 2 === 0 ? 'MEDIUM' : 'HARD'),
-    pitCount: 0,
-    cumulativeTime: 0,
-  }));
+  // Target finish order for this specific Grand Prix
+  const targetDriverOrder = RACE_FINISH_PROFILES_2026[round.key] || RACE_FINISH_PROFILES_2026['2026-12'];
 
-  currentPositions.forEach(p => {
+  let currentDrivers = targetDriverOrder.map((driverNumber, rankIdx) => {
+    const dInfo = DRIVERS_2026.find(d => d.driver_number === driverNumber) || { driver_number: driverNumber };
+    return {
+      driverId: driverNumber,
+      targetRank: rankIdx + 1, // Target finishing position (1 to 20)
+      pos: rankIdx + 1,
+      tyre: rankIdx < 8 ? 'SOFT' : (rankIdx % 2 === 0 ? 'MEDIUM' : 'HARD'),
+      pitCount: 0,
+      cumulativeTime: 0,
+      driverInfo: dInfo,
+    };
+  });
+
+  currentDrivers.forEach(p => {
     stints.push({
       driver_number: p.driverId,
       stint_number: 1,
@@ -262,18 +298,18 @@ function generate2026RaceData(sessionKey = '2026-12') {
   let currentTime = baseTimestamp;
 
   for (let lapNum = 1; lapNum <= totalLaps; lapNum++) {
-    currentPositions.forEach(p => {
-      const shouldPit = (p.pitCount === 0 && lapNum === (p.tyre === 'SOFT' ? Math.floor(totalLaps * 0.35) : Math.floor(totalLaps * 0.55))) ||
-                        (p.pitCount === 1 && lapNum === Math.floor(totalLaps * 0.72));
+    currentDrivers.forEach(p => {
+      const pitLap1 = p.tyre === 'SOFT' ? Math.floor(totalLaps * 0.35) : Math.floor(totalLaps * 0.52);
+      const shouldPit = (p.pitCount === 0 && lapNum === pitLap1);
 
       if (shouldPit) {
         p.pitCount += 1;
-        p.tyre = p.tyre === 'SOFT' ? 'MEDIUM' : (p.tyre === 'MEDIUM' ? 'HARD' : 'SOFT');
+        p.tyre = p.tyre === 'SOFT' ? 'MEDIUM' : 'HARD';
         pit.push({
           driver_number: p.driverId,
           lap_number: lapNum,
           date: new Date(currentTime).toISOString(),
-          pit_duration: 22.4 + (Math.random() * 2.5),
+          pit_duration: 21.8 + (Math.random() * 0.8),
         });
         stints.push({
           driver_number: p.driverId,
@@ -284,14 +320,14 @@ function generate2026RaceData(sessionKey = '2026-12') {
         });
       }
 
-      const tyreWear = ((lapNum % 20) * 0.05);
-      const randomJitter = (Math.random() - 0.5) * 0.7;
-      const driverBias = (p.pos * 0.06);
+      // Authentic progressive lap pacing based on target rank
+      const rankPaceGap = (p.targetRank - 1) * 0.055; // ~0.055s per position per lap
+      const tyreWear = ((lapNum % 18) * 0.02);
       const isPitLap = shouldPit;
-      const lapTime = baseLapTime + driverBias + tyreWear + randomJitter + (isPitLap ? 22.0 : 0);
+      const lapTime = baseLapTime + rankPaceGap + tyreWear + (isPitLap ? 22.0 : 0);
 
-      const s1 = lapTime * 0.31 + (Math.random() - 0.5) * 0.2;
-      const s2 = lapTime * 0.38 + (Math.random() - 0.5) * 0.2;
+      const s1 = lapTime * 0.31;
+      const s2 = lapTime * 0.38;
       const s3 = lapTime - s1 - s2;
 
       p.cumulativeTime += lapTime;
@@ -308,8 +344,9 @@ function generate2026RaceData(sessionKey = '2026-12') {
       });
     });
 
-    currentPositions.sort((a, b) => a.cumulativeTime - b.cumulativeTime);
-    currentPositions.forEach((p, idx) => {
+    // Update positions each lap
+    currentDrivers.sort((a, b) => a.cumulativeTime - b.cumulativeTime);
+    currentDrivers.forEach((p, idx) => {
       p.pos = idx + 1;
       position.push({
         driver_number: p.driverId,
@@ -335,5 +372,6 @@ function generate2026RaceData(sessionKey = '2026-12') {
 module.exports = {
   SEASON_2026_CALENDAR,
   DRIVERS_2026,
+  RACE_FINISH_PROFILES_2026,
   generate2026RaceData,
 };
