@@ -1,18 +1,28 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { formatTime } from '../utils/formatTime'; // Assuming a utils file for formatting
-import { getTeamColor } from '../utils/teamColors'; // Assuming a utils file for team colors
+import { useEffect, useRef, useState } from 'react';
+import { formatTime } from '../utils/formatTime';
+import { getTeamColor, getTyreStyle } from '../utils/teamColors';
+import DriverAvatar from './DriverAvatar';
 
-const DriverRow = ({ driver, driverBestLaps, driverBestSectors, globalBestLap, globalBestSectors, onDriverSelect }) => {
+const DriverRow = ({
+  driver,
+  driverBestLaps,
+  driverBestSectors,
+  globalBestLap,
+  globalBestSectors,
+  gapToLeader = '-',
+  interval = '-',
+  isSelected = false,
+  onDriverSelect
+}) => {
   const rowRef = useRef(null);
   const prevPosition = useRef(driver.position);
   const [flashClass, setFlashClass] = useState('');
 
   useEffect(() => {
-    // Handle position change animation
     if (rowRef.current && prevPosition.current !== driver.position && prevPosition.current !== null) {
       const oldPos = prevPosition.current;
       const newPos = driver.position;
-      const rowHeight = rowRef.current.offsetHeight;
+      const rowHeight = rowRef.current.offsetHeight || 40;
       const translateY = (oldPos - newPos) * rowHeight;
 
       rowRef.current.style.transition = 'none';
@@ -20,89 +30,166 @@ const DriverRow = ({ driver, driverBestLaps, driverBestSectors, globalBestLap, g
 
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
-          rowRef.current.style.transition = 'transform 0.3s ease-out';
-          rowRef.current.style.transform = 'translateY(0)';
+          if (rowRef.current) {
+            rowRef.current.style.transition = 'transform 0.3s ease-out';
+            rowRef.current.style.transform = 'translateY(0)';
+          }
         });
       });
     }
     prevPosition.current = driver.position;
 
-    // Handle flash animation for updates
     if (driver.flash) {
-      setFlashClass('animate-flash dark:animate-flash-dark');
+      setFlashClass('bg-red-500/20 transition-colors duration-300');
       const timer = setTimeout(() => {
         setFlashClass('');
-      }, 500); // Match animation duration
+      }, 500);
       return () => clearTimeout(timer);
     }
   }, [driver.position, driver.flash]);
 
   const getSectorColorClass = (sectorTime, sectorIndex) => {
-    if (sectorTime === null) return '';
+    if (sectorTime === null || sectorTime === undefined) return 'text-gray-400 dark:text-gray-500';
     const driverPB = driverBestSectors[driver.driverId] ? driverBestSectors[driver.driverId][sectorIndex] : null;
     const globalPB = globalBestSectors[sectorIndex];
 
-    if (sectorTime === globalPB) {
-      return 'text-sector-purple font-bold'; // Overall fastest sector
-    } else if (sectorTime === driverPB) {
-      return 'text-sector-green font-bold'; // Personal best sector
-    } else if (sectorTime > (driverPB || 0)) { // If slower than personal best
-      return 'text-sector-yellow';
+    if (globalPB !== null && sectorTime <= globalPB) {
+      return 'text-[#BF5AF2] font-bold bg-[#BF5AF2]/20 px-1 py-0.5 rounded';
+    } else if (driverPB !== null && sectorTime <= driverPB) {
+      return 'text-[#16A34A] dark:text-[#30D158] font-bold';
+    } else if (sectorTime > (driverPB || 0)) {
+      return 'text-[#D97706] dark:text-[#FFD60A]';
     }
-    return '';
+    return 'text-gray-800 dark:text-gray-300';
   };
 
   const getLapTimeColorClass = (lapTime) => {
-    if (lapTime === null) return '';
+    if (lapTime === null || lapTime === undefined) return 'text-gray-400 dark:text-gray-500';
     const driverPB = driverBestLaps[driver.driverId] ? driverBestLaps[driver.driverId].overall : null;
     const globalPB = globalBestLap;
 
-    if (lapTime === globalPB) {
-      return 'text-sector-purple font-bold'; // Overall fastest lap
-    } else if (lapTime === driverPB) {
-      return 'text-sector-green font-bold'; // Personal best lap
+    if (globalPB !== null && lapTime <= globalPB) {
+      return 'text-[#BF5AF2] font-bold bg-[#BF5AF2]/20 px-1.5 py-0.5 rounded';
+    } else if (driverPB !== null && lapTime <= driverPB) {
+      return 'text-[#16A34A] dark:text-[#30D158] font-bold';
     }
-    return '';
+    return 'text-gray-900 dark:text-gray-200';
   };
 
-  const teamColor = getTeamColor(driver.team);
+  const teamColor = driver.team_colour ? `#${driver.team_colour}` : getTeamColor(driver.team);
+  const tyreStyle = getTyreStyle(driver.tyres);
 
   return (
-    <tr 
-      ref={rowRef} 
-      className={`relative ${flashClass} ${driver.isPitLap ? 'bg-pit-stop/20' : ''} cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800`}
+    <tr
+      ref={rowRef}
+      className={`relative border-b border-gray-200 dark:border-gray-800/80 transition-colors duration-150 cursor-pointer ${flashClass} ${
+        isSelected ? 'bg-red-500/15 dark:bg-red-600/20' : 'hover:bg-gray-100/80 dark:hover:bg-gray-800/60'
+      } ${driver.isPitLap ? 'bg-orange-500/15' : ''}`}
       onClick={() => onDriverSelect(driver.driverId)}
     >
-      <td className="py-2 px-4 text-center font-bold text-app-text dark:text-app-text-dark">{driver.position || '-'}</td>
-      <td className="py-2 px-4 text-center text-app-text dark:text-app-text-dark">{driver.number}</td>
-      <td className="py-2 px-4 flex items-center space-x-2 text-app-text dark:text-app-text-dark">
-        <div className="w-3 h-3 rounded-full" style={{ backgroundColor: teamColor }}></div>
-        <span>{driver.driverName}</span>
-        <span className="text-muted-text dark:text-muted-text-dark text-sm hidden md:inline">({driver.team})</span>
+      {/* Position */}
+      <td className="py-2.5 px-3 text-center font-black text-xs">
+        <div className="flex items-center justify-center gap-1">
+          <span className="w-5 text-right text-gray-900 dark:text-white font-mono font-bold">
+            {driver.position || '-'}
+          </span>
+          {driver.positionChanged === 1 && <span className="text-green-600 dark:text-green-400 text-xs font-bold">▲</span>}
+          {driver.positionChanged === -1 && <span className="text-red-600 dark:text-red-500 text-xs font-bold">▼</span>}
+          {driver.positionChanged === 0 && <span className="text-gray-400 dark:text-gray-600 text-[10px]">—</span>}
+        </div>
       </td>
-      <td className="py-2 px-4 text-center text-app-text dark:text-app-text-dark">{driver.lapNumber || '-'}</td>
-      <td className={`py-2 px-4 text-center ${getLapTimeColorClass(driver.lastLapTime)}`}>
+
+      {/* Driver Info */}
+      <td className="py-2 px-3">
+        <div className="flex items-center gap-2.5">
+          <div className="w-1 h-7 rounded-full shrink-0" style={{ backgroundColor: teamColor }} />
+          <DriverAvatar driver={driver} size="sm" />
+          <div className="flex flex-col">
+            <div className="flex items-center gap-1.5">
+              <span className="font-bold text-xs text-gray-900 dark:text-white">
+                {driver.driverName || 'Unknown'}
+              </span>
+              <span className="text-[10px] font-mono px-1 py-0.2 rounded bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-400">
+                {driver.number}
+              </span>
+            </div>
+            <span className="text-[11px] text-gray-500 dark:text-gray-400 leading-none">
+              {driver.team || '-'}
+            </span>
+          </div>
+        </div>
+      </td>
+
+      {/* Gap to Leader */}
+      <td className="py-2 px-2 text-center text-xs font-mono font-semibold text-gray-700 dark:text-gray-300">
+        {gapToLeader}
+      </td>
+
+      {/* Interval to car ahead */}
+      <td className="py-2 px-2 text-center text-xs font-mono text-gray-500 dark:text-gray-400">
+        {interval}
+      </td>
+
+      {/* Lap Number */}
+      <td className="py-2 px-2 text-center font-mono text-xs text-gray-800 dark:text-gray-200">
+        {driver.lapNumber || 1}
+      </td>
+
+      {/* Last Lap Time */}
+      <td className={`py-2 px-2 text-center font-mono text-xs ${getLapTimeColorClass(driver.lastLapTime)}`}>
         {formatTime(driver.lastLapTime)}
       </td>
-      <td className={`py-2 px-4 text-center ${getLapTimeColorClass(driver.bestLapTime)}`}>
+
+      {/* Best Lap Time */}
+      <td className={`py-2 px-2 text-center font-mono text-xs ${getLapTimeColorClass(driver.bestLapTime)}`}>
         {formatTime(driver.bestLapTime)}
       </td>
-      <td className={`py-2 px-4 text-center ${getSectorColorClass(driver.sectorTimes[0], 0)}`}>
-        {formatTime(driver.sectorTimes[0])}
+
+      {/* Sector 1 */}
+      <td className={`py-2 px-2 text-center font-mono text-xs ${getSectorColorClass(driver.sectorTimes?.[0], 0)}`}>
+        {formatTime(driver.sectorTimes?.[0])}
       </td>
-      <td className={`py-2 px-4 text-center ${getSectorColorClass(driver.sectorTimes[1], 1)}`}>
-        {formatTime(driver.sectorTimes[1])}
+
+      {/* Sector 2 */}
+      <td className={`py-2 px-2 text-center font-mono text-xs ${getSectorColorClass(driver.sectorTimes?.[1], 1)}`}>
+        {formatTime(driver.sectorTimes?.[1])}
       </td>
-      <td className={`py-2 px-4 text-center ${getSectorColorClass(driver.sectorTimes[2], 2)}`}>
-        {formatTime(driver.sectorTimes[2])}
+
+      {/* Sector 3 */}
+      <td className={`py-2 px-2 text-center font-mono text-xs ${getSectorColorClass(driver.sectorTimes?.[2], 2)}`}>
+        {formatTime(driver.sectorTimes?.[2])}
       </td>
-      <td className="py-2 px-4 text-center text-app-text dark:text-app-text-dark">
-        <span className={`px-2 py-1 rounded-full text-xs font-semibold ${driver.tyres ? 'bg-gray-200 dark:bg-gray-700' : ''}`}>
-          {driver.tyres || '-'}
-        </span>
+
+      {/* Pirelli Tyre Compound Badge */}
+      <td className="py-2 px-2 text-center">
+        {tyreStyle ? (
+          <span
+            className="inline-flex items-center justify-center w-5 h-5 rounded-full font-black text-[11px] shadow-sm"
+            style={{
+              backgroundColor: tyreStyle.bg,
+              color: tyreStyle.text,
+              border: `1.5px solid ${tyreStyle.border}`,
+            }}
+            title={driver.tyres}
+          >
+            {tyreStyle.label}
+          </span>
+        ) : (
+          <span className="text-gray-400 text-xs">-</span>
+        )}
       </td>
-      <td className="py-2 px-4 text-center text-app-text dark:text-app-text-dark">
-        {driver.pitStopCount > 0 ? driver.pitStopCount : '-'}
+
+      {/* Pit Stop Counter */}
+      <td className="py-2 px-2 text-center font-mono text-xs font-semibold">
+        {driver.isPitLap ? (
+          <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-[#FF9F0A] text-black animate-pulse">
+            PIT
+          </span>
+        ) : driver.pitStopCount > 0 ? (
+          <span className="text-gray-900 dark:text-white font-bold">{driver.pitStopCount}</span>
+        ) : (
+          <span className="text-gray-400">-</span>
+        )}
       </td>
     </tr>
   );

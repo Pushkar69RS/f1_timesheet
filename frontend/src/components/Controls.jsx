@@ -1,6 +1,14 @@
-import React from 'react';
-
-const Controls = ({ isPaused, replaySpeed, progress, currentLap, totalLaps, onPlayPause, onSpeedChange, onSeek, onRestart }) => {
+const Controls = ({
+  isPaused,
+  replaySpeed,
+  progress,
+  currentLap,
+  totalLaps,
+  onPlayPause,
+  onSpeedChange,
+  onSeek,
+  onRestart
+}) => {
   const speedOptions = [0.25, 0.5, 1, 2, 4];
 
   const handleSeekChange = (e) => {
@@ -8,38 +16,55 @@ const Controls = ({ isPaused, replaySpeed, progress, currentLap, totalLaps, onPl
   };
 
   return (
-    <div className="bg-secondary dark:bg-secondary-dark p-4 rounded-lg shadow-lg flex flex-col space-y-4 border border-gray-200 dark:border-gray-700">
-      <div className="flex justify-center space-x-4">
+    <div className="bg-white dark:bg-[#111622] p-4 rounded-xl shadow-lg flex flex-col space-y-4 border border-gray-200 dark:border-gray-800 transition-colors">
+      <div className="flex items-center justify-between gap-3">
         <button
           onClick={onPlayPause}
-          className="px-6 py-2 rounded-md bg-primary text-white font-semibold hover:bg-primary-dark transition-colors"
+          className={`flex-1 py-3 px-4 rounded-xl font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-md active:scale-95 ${
+            isPaused
+              ? 'bg-gradient-to-r from-red-600 to-[#E10600] hover:from-red-500 hover:to-red-600 text-white shadow-red-600/30'
+              : 'bg-[#FFD60A] hover:bg-yellow-400 text-black shadow-yellow-500/20'
+          }`}
         >
-          {isPaused ? 'Play' : 'Pause'}
+          {isPaused ? '▶ START REPLAY' : '❚❚ PAUSE REPLAY'}
         </button>
         <button
           onClick={onRestart}
-          className="px-6 py-2 rounded-md bg-gray-200 text-app-text dark:bg-gray-700 dark:text-app-text-dark font-semibold hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+          className="py-3 px-4 rounded-xl bg-gray-100 dark:bg-gray-900 text-gray-700 dark:text-gray-300 font-bold text-xs uppercase hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors border border-gray-200 dark:border-gray-800 active:scale-95"
+          title="Restart Replay from Lap 1"
         >
-          Restart
+          ↺ RESTART
         </button>
       </div>
 
-      <div className="flex items-center space-x-2">
-        <label htmlFor="speed" className="text-muted-text dark:text-muted-text-dark">Speed:</label>
-        <select
-          id="speed"
-          value={replaySpeed}
-          onChange={(e) => onSpeedChange(parseFloat(e.target.value))}
-          className="flex-grow p-2 rounded-md bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-app-text dark:text-app-text-dark"
-        >
+      {/* Speed Selector Pills */}
+      <div>
+        <label className="text-[10px] font-mono font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest block mb-1.5">
+          Simulation Multiplier
+        </label>
+        <div className="grid grid-cols-5 gap-1.5 bg-gray-50 dark:bg-gray-950 p-1 rounded-lg border border-gray-200 dark:border-gray-800/80">
           {speedOptions.map(speed => (
-            <option key={speed} value={speed}>{speed}x</option>
+            <button
+              key={speed}
+              onClick={() => onSpeedChange(speed)}
+              className={`py-1.5 rounded text-xs font-black font-mono transition-all ${
+                replaySpeed === speed
+                  ? 'bg-gradient-to-r from-red-600 to-[#E10600] text-white shadow-sm'
+                  : 'text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white'
+              }`}
+            >
+              {speed}x
+            </button>
           ))}
-        </select>
+        </div>
       </div>
 
-      <div className="flex flex-col space-y-2">
-        <label htmlFor="seek" className="text-muted-text dark:text-muted-text-dark">Seek: {currentLap}/{totalLaps} Laps ({progress.toFixed(1)}%)</label>
+      {/* Scrubber Range */}
+      <div className="flex flex-col space-y-1.5">
+        <div className="flex justify-between items-center text-xs text-gray-600 dark:text-gray-400 font-mono">
+          <span className="font-bold">Lap {currentLap || 1} / {totalLaps || 52}</span>
+          <span className="font-bold text-gray-900 dark:text-white font-mono">{progress.toFixed(1)}% Complete</span>
+        </div>
         <input
           type="range"
           id="seek"
@@ -48,7 +73,7 @@ const Controls = ({ isPaused, replaySpeed, progress, currentLap, totalLaps, onPl
           step="0.1"
           value={progress}
           onChange={handleSeekChange}
-          className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700 accent-primary"
+          className="w-full h-2 bg-gray-200 dark:bg-gray-900 rounded-lg appearance-none cursor-pointer accent-[#E10600] border border-gray-300 dark:border-gray-800"
         />
       </div>
     </div>

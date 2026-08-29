@@ -70,7 +70,7 @@ function normalizeOpenF1(openf1Json) {
     const driverInfo = driverMap.get(lap.driver_number);
     if (!driverInfo) return;
 
-    const timestamp = parseOpenF1Date(lap.date_start);
+    const timestamp = parseOpenF1Date(lap.date_start || lap.date);
     if (!timestamp) return;
 
     const sectorTimes = [
@@ -85,6 +85,8 @@ function normalizeOpenF1(openf1Json) {
       driverName: driverInfo.driverName,
       number: driverInfo.number,
       team: driverInfo.team,
+      team_colour: driverInfo.team_colour,
+      headshot_url: driverInfo.headshot_url,
       lapNumber: lap.lap_number,
       lapTimeSeconds: lap.lap_duration,
       timestamp: timestamp,

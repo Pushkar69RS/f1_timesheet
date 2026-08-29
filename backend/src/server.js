@@ -23,6 +23,8 @@ app.use((req, res, next) => {
   next();
 });
 
+const { SEASON_2026_CALENDAR, DRIVERS_2026 } = require('./season2026');
+
 // API Endpoints
 app.get('/api/snapshot', (req, res) => {
   res.json(replayEngine.currentSnapshot);
@@ -32,13 +34,21 @@ app.get('/api/session-info', (req, res) => {
   res.json(replayEngine.getSessionInfo());
 });
 
+app.get('/api/calendar-2026', (req, res) => {
+  res.json(SEASON_2026_CALENDAR);
+});
+
+app.get('/api/drivers-2026', (req, res) => {
+  res.json(DRIVERS_2026);
+});
+
 app.post('/api/load-session', async (req, res) => {
   const { session_key } = req.body;
   if (!session_key) {
     return res.status(400).json({ error: 'session_key is required' });
   }
   try {
-    await replayEngine.loadSession(session_key, false); // Force offline false
+    await replayEngine.loadSession(session_key, false);
     res.json({ message: `Session ${session_key} loaded successfully.` });
   } catch (error) {
     console.error('Failed to load session via API:', error.message);

@@ -3,7 +3,8 @@ const fs = require('fs');
 const path = require('path');
 const fetch = require('node-fetch');
 const { normalizeOpenF1 } = require('./normalize');
-const { parseOpenF1Date } = require('./utils');
+const { getCircuit, interpolateTrackPosition } = require('./circuitData');
+const { SEASON_2026_CALENDAR, DRIVERS_2026, generate2026RaceData } = require('./season2026');
 
 const DEFAULT_RACE_DATA_PATH = path.join(__dirname, '../raceData.json');
 const OPENF1_BASE = process.env.OPENF1_BASE || 'https://api.openf1.org/v1';
@@ -19,33 +20,32 @@ class ReplayEngine {
   constructor() {
     this.events = [];
     this.sessionInfo = null;
-    this.driversData = []; // To store the original driver list
-    this.currentSnapshot = {}; // Stores the latest state of all drivers
-    this.driverBestLaps = {}; // { driverId: { overall: time } }
-    this.driverBestSectors = {}; // { driverId: [s1, s2, s3] }
+    this.driversData = [];
+    this.currentSnapshot = {};
+    this.driverBestLaps = {};
+    this.driverBestSectors = {};
     this.globalBestLap = null;
     this.globalBestSectors = [null, null, null];
+    this.activeLapNumber = 1;
     this.replayInterval = null;
     this.currentEventIndex = 0;
-    this.replayStartTime = 0; // Timestamp when replay started (real time)
-    this.sessionEventStartTime = 0; // Absolute timestamp of the first event in the session (event time)
+    this.replayStartTime = 0;
+    this.sessionEventStartTime = 0;
     this.replaySpeed = REPLAY_SPEEDS[process.env.REPLAY_SPEED_DEFAULT] || 1.0;
     this.isPaused = true;
-    this.totalDurationMs = 0; // Total duration of the race in milliseconds
-    this.lastEventTimestamp = 0; // Timestamp of the last event in the normalized data
+    this.totalDurationMs = 0;
+    this.lastEventTimestamp = 0;
 
-    this.wsClients = new Set(); // WebSocket clients
+    this.wsClients = new Set();
     this.lastLogTime = Date.now();
     this.eventsProcessedSinceLastLog = 0;
   }
 
   addWsClient(ws) {
     this.wsClients.add(ws);
-    // Send current snapshot to new client
     if (Object.keys(this.currentSnapshot).length > 0) {
       ws.send(JSON.stringify({ type: 'snapshot', payload: this.currentSnapshot }));
     }
-    // Send initial replay state
     ws.send(JSON.stringify({
       type: 'control_state',
       payload: {
@@ -53,7 +53,7 @@ class ReplayEngine {
         replaySpeed: this.replaySpeed,
         progress: this.getProgress(),
         currentLap: this.getCurrentLap(),
-        totalLaps: this.sessionInfo ? this.sessionInfo.session_laps : 0,
+        totalLaps: this.sessionInfo ? (this.sessionInfo.session_laps || 52) : 52,
         totalDurationMs: this.totalDurationMs,
         globalBestLap: this.globalBestLap,
         globalBestSectors: this.globalBestSectors,
@@ -97,77 +97,48 @@ class ReplayEngine {
             }
             const result = await response.json();
             fetchedData[key] = Array.isArray(result) ? result : [result];
-            console.log(`  ✓ Fetched ${fetchedData[key].length} records for ${key}.`);
-            if (fetchedData[key].length === 0) {
-              console.log(`    ⚠ No data for ${key} in this session.`);
-            }
             break;
           } catch (error) {
-            console.warn(`Failed to fetch ${key} (retries left: ${retries - 1}):`, error.message);
             retries--;
             if (retries === 0) {
-              console.error(`  ✗ All retries failed for ${key}, using empty array.`);
+              console.warn(`Failed to fetch ${key} after 3 attempts:`, error.message);
               fetchedData[key] = [];
             } else {
-              await new Promise(resolve => setTimeout(resolve, 2000));
+              await new Promise(resolve => setTimeout(resolve, 1000));
             }
           }
         }
       }
       return fetchedData;
     } catch (error) {
-      console.error('Error fetching from OpenF1 API:', error.message);
+      console.error('Error fetching data from OpenF1 API:', error.message);
       return null;
     }
   }
 
-  async loadSession(sessionKey, forceOffline = false) {
+  async loadSession(sessionKey = null, forceOffline = false) {
+    this.stopReplay();
     let rawData;
 
-    const loadLocalFile = () => {
-      try {
-        return JSON.parse(fs.readFileSync(DEFAULT_RACE_DATA_PATH, 'utf8'));
-      } catch (error) {
-        console.error('Error reading local raceData.json:', error.message);
-        throw new Error('Failed to load local race data. Is raceData.json present and valid?');
-      }
-    };
-
-    if (forceOffline || !sessionKey) {
+    if (sessionKey && String(sessionKey).startsWith('2026')) {
+      console.log(`Loading 2026 Grand Prix session: ${sessionKey}`);
+      rawData = generate2026RaceData(sessionKey);
+    } else if (forceOffline || !sessionKey) {
       console.log('Loading session data from local file:', DEFAULT_RACE_DATA_PATH);
-      rawData = loadLocalFile();
-
-      // Check for sample data and auto-fetch if needed
-      if (rawData.drivers && rawData.drivers.length < 20) {
-        console.log('Sample data detected. Fetching full session data for Bahrain 2024 (9158)...');
-        console.log('This may take a few minutes and will only happen once.');
-        const fullData = await this._fetchFromApi('9158');
-        if (fullData) {
-          rawData = fullData;
-          try {
-            fs.writeFileSync(DEFAULT_RACE_DATA_PATH, JSON.stringify(rawData, null, 2));
-            console.log(`Successfully saved full session data to ${DEFAULT_RACE_DATA_PATH}`);
-          } catch (writeError) {
-            console.error('Failed to write full raceData.json:', writeError.message);
-          }
-        } else {
-          console.warn('Failed to fetch full data. Proceeding with sample data.');
-        }
+      try {
+        rawData = JSON.parse(fs.readFileSync(DEFAULT_RACE_DATA_PATH, 'utf8'));
+      } catch {
+        console.log('Fallback to 2026 British Grand Prix session data.');
+        rawData = generate2026RaceData('2026-12');
       }
     } else {
       const fetchedData = await this._fetchFromApi(sessionKey);
-      if (fetchedData) {
-        rawData = fetchedData;
-      } else {
-        console.log('Falling back to local raceData.json due to API fetch failure.');
-        rawData = loadLocalFile();
-      }
+      rawData = fetchedData || generate2026RaceData('2026-12');
     }
 
     this.events = normalizeOpenF1(rawData);
 
     if (!Array.isArray(this.events)) {
-      console.warn('ReplayEngine: normalizeOpenF1 returned non-array', typeof this.events);
       this.events = [];
     }
 
@@ -177,21 +148,28 @@ class ReplayEngine {
     console.log(`Loaded ${this.events.length} events, ${this.driversData.length} drivers`);
 
     if (this.events.length > 0) {
-      const firstEventTime = this.events[0].timestamp.getTime();
+      const laps = this.events.filter(e => e.kind === 'lap');
+      const firstLapTime = laps.length > 0 ? laps[0].timestamp.getTime() : this.events[0].timestamp.getTime();
       const lastEventTime = this.events[this.events.length - 1].timestamp.getTime();
 
-      this.sessionEventStartTime = isNaN(firstEventTime) ? 0 : firstEventTime;
+      // Anchor timeline so Lap 1 starts immediately
+      const raceStartTime = Math.max(this.events[0].timestamp.getTime(), firstLapTime - 45000);
+
+      this.sessionEventStartTime = isNaN(raceStartTime) ? 0 : raceStartTime;
       this.lastEventTimestamp = isNaN(lastEventTime) ? 0 : lastEventTime;
-      this.totalDurationMs = this.lastEventTimestamp - this.sessionEventStartTime;
+      this.totalDurationMs = Math.max(1000, this.lastEventTimestamp - this.sessionEventStartTime);
+
+      this.events = this.events.filter(e => e.timestamp.getTime() >= this.sessionEventStartTime);
     } else {
       this.sessionEventStartTime = 0;
       this.lastEventTimestamp = 0;
       this.totalDurationMs = 0;
     }
 
+    this.activeLapNumber = 1;
     this.initializeSnapshot(this.driversData);
     this.resetReplay();
-    console.log(`Session loaded. Total events: ${this.events.length}. Duration: ${this.totalDurationMs / 1000}s`);
+    console.log(`Session loaded. Total events: ${this.events.length}. Duration: ${(this.totalDurationMs / 1000).toFixed(1)}s`);
   }
 
   initializeSnapshot(driversData) {
@@ -200,27 +178,38 @@ class ReplayEngine {
     this.driverBestSectors = {};
     this.globalBestLap = null;
     this.globalBestSectors = [null, null, null];
+    this.activeLapNumber = 1;
 
-    driversData.forEach(d => {
+    const circuit = getCircuit(this.sessionInfo ? this.sessionInfo.circuit_short_name : 'Silverstone');
+
+    driversData.forEach((d, idx) => {
+      const gridFraction = Math.max(0, 0.05 - (idx * 0.0025));
+      const lateral = (idx % 2 === 0 ? -10 : 10);
+      const initPos = interpolateTrackPosition(circuit, gridFraction, lateral);
+
       this.currentSnapshot[d.driver_number] = {
         driverId: d.driver_number,
         driverName: d.full_name,
         number: d.driver_number,
+        code: d.name_acronym || String(d.driver_number),
         team: d.team_name,
-        position: null,
-        lapNumber: 0,
+        team_colour: d.team_colour || null,
+        headshot_url: d.headshot_url || null,
+        country_code: d.country_code || null,
+        position: idx + 1,
+        lapNumber: 1,
         lastLapTime: null,
         bestLapTime: null,
         sectorTimes: [null, null, null],
         bestSectorTimes: [null, null, null],
-        tyres: null,
+        tyres: idx < 8 ? 'SOFT' : (idx % 2 === 0 ? 'MEDIUM' : 'HARD'),
         isPitLap: false,
         pitStopCount: 0,
-        x: null,
-        y: null,
-        z: null,
-        flash: false, // For UI animation
-        positionChanged: 0, // -1 for down, 0 for no change, 1 for up
+        trackProgress: gridFraction,
+        x: initPos.x,
+        y: initPos.y,
+        flash: false,
+        positionChanged: 0,
       };
       this.driverBestLaps[d.driver_number] = { overall: null };
       this.driverBestSectors[d.driver_number] = [null, null, null];
@@ -231,8 +220,9 @@ class ReplayEngine {
     this.stopReplay();
     this.currentEventIndex = 0;
     this.isPaused = true;
-    this.replayStartTime = 0; // Reset real-world start time
-    this.initializeSnapshot(this.driversData || []); // Re-initialize snapshot for clean state
+    this.replayStartTime = 0;
+    this.activeLapNumber = 1;
+    this.initializeSnapshot(this.driversData || []);
 
     this.broadcast({
       type: 'snapshot',
@@ -244,8 +234,8 @@ class ReplayEngine {
         isPaused: this.isPaused,
         replaySpeed: this.replaySpeed,
         progress: 0,
-        currentLap: 0,
-        totalLaps: this.sessionInfo ? this.sessionInfo.session_laps : 0,
+        currentLap: 1,
+        totalLaps: this.sessionInfo ? (this.sessionInfo.session_laps || 52) : 52,
         totalDurationMs: this.totalDurationMs,
         globalBestLap: this.globalBestLap,
         globalBestSectors: this.globalBestSectors,
@@ -254,14 +244,12 @@ class ReplayEngine {
   }
 
   startReplay() {
-    if (!this.isPaused && this.replayInterval) return; // Already playing
+    if (!this.isPaused && this.replayInterval) return;
 
     this.isPaused = false;
-    
-    // Calculate replayStartTime to resume from current event index
     const currentEventTimestamp = this.events[this.currentEventIndex]?.timestamp?.getTime();
     if (isNaN(currentEventTimestamp)) {
-      this.replayStartTime = Date.now(); // If no valid current event, start from now
+      this.replayStartTime = Date.now();
     } else {
       const elapsedEventTime = currentEventTimestamp - this.sessionEventStartTime;
       this.replayStartTime = Date.now() - (elapsedEventTime / this.replaySpeed);
@@ -269,7 +257,7 @@ class ReplayEngine {
 
     this.replayInterval = setInterval(() => {
       this.processEvents();
-    }, 50); // Check for events every 50ms
+    }, 50);
     console.log('Replay started.');
     this.broadcast({ type: 'control_state', payload: { isPaused: false } });
   }
@@ -291,7 +279,7 @@ class ReplayEngine {
 
   seekReplay(progress) {
     this.stopReplay();
-    this.isPaused = true; // Pause during seek
+    this.isPaused = true;
 
     const targetEventTimeMs = this.sessionEventStartTime + (this.totalDurationMs * (progress / 100));
     let targetIndex = 0;
@@ -300,33 +288,35 @@ class ReplayEngine {
         targetIndex = i;
         break;
       }
-      targetIndex = i; // In case targetTime is beyond last event
+      targetIndex = i;
     }
 
     this.currentEventIndex = targetIndex;
-    this.initializeSnapshot(this.driversData || []); // Reset snapshot for clean seek
+    this.initializeSnapshot(this.driversData || []);
 
-    // Re-process events up to the target index to build the snapshot
-    for (let i = 0; i < this.currentEventIndex; i++) { // Loop up to, not including, currentEventIndex
-      this.applyEventToSnapshot(this.events[i], true); // true to not broadcast intermediate events
+    for (let i = 0; i < this.currentEventIndex; i++) {
+      this.applyEventToSnapshot(this.events[i], true);
     }
-    // Apply the current event at targetIndex if it exists
     if (this.currentEventIndex < this.events.length) {
-        this.applyEventToSnapshot(this.events[this.currentEventIndex], true);
+      this.applyEventToSnapshot(this.events[this.currentEventIndex], true);
     }
 
+    // Re-evaluate active lap
+    const totalLaps = this.sessionInfo?.session_laps || 52;
+    const estimatedLap = Math.min(totalLaps, Math.max(1, Math.floor((progress / 100) * totalLaps) + 1));
+    const snapshotLaps = Object.values(this.currentSnapshot).map(d => d.lapNumber || 0);
+    this.activeLapNumber = Math.max(estimatedLap, ...snapshotLaps);
 
-    // Adjust replayStartTime to align real-world time with the seeked event time
+    this.updateTrackCoordinates(progress / 100);
+
     const actualSeekedEventTime = this.events[this.currentEventIndex]?.timestamp?.getTime();
     if (!isNaN(actualSeekedEventTime)) {
-        const elapsedEventTime = actualSeekedEventTime - this.sessionEventStartTime;
-        this.replayStartTime = Date.now() - (elapsedEventTime / this.replaySpeed);
+      const elapsedEventTime = actualSeekedEventTime - this.sessionEventStartTime;
+      this.replayStartTime = Date.now() - (elapsedEventTime / this.replaySpeed);
     } else {
-        this.replayStartTime = Date.now(); // Fallback
+      this.replayStartTime = Date.now();
     }
 
-
-    console.log(`Replay seeked to ${progress}% (event index ${this.currentEventIndex}).`);
     this.broadcast({
       type: 'snapshot',
       payload: this.currentSnapshot
@@ -338,7 +328,7 @@ class ReplayEngine {
         replaySpeed: this.replaySpeed,
         progress: this.getProgress(),
         currentLap: this.getCurrentLap(),
-        totalLaps: this.sessionInfo ? this.sessionInfo.session_laps : 0,
+        totalLaps: this.sessionInfo ? (this.sessionInfo.session_laps || 52) : 52,
         totalDurationMs: this.totalDurationMs,
         globalBestLap: this.globalBestLap,
         globalBestSectors: this.globalBestSectors,
@@ -347,23 +337,20 @@ class ReplayEngine {
   }
 
   setSpeed(speed) {
-    if (REPLAY_SPEEDS[speed]) {
-      this.replaySpeed = REPLAY_SPEEDS[speed];
-      console.log(`Replay speed set to ${this.replaySpeed}x.`);
+    const numSpeed = parseFloat(speed);
+    if (!isNaN(numSpeed) && numSpeed > 0) {
+      this.replaySpeed = numSpeed;
       this.broadcast({ type: 'control_state', payload: { replaySpeed: this.replaySpeed } });
       if (!this.isPaused) {
         this.stopReplay();
-        this.startReplay(); // Restart interval with new speed
+        this.startReplay();
       }
-    } else {
-      console.warn(`Invalid replay speed: ${speed}`);
     }
   }
 
   processEvents() {
     if (this.isPaused || this.currentEventIndex >= this.events.length) {
       if (this.currentEventIndex >= this.events.length) {
-        console.log('Replay finished.');
         this.pauseReplay();
         this.broadcast({ type: 'replay_finished' });
       }
@@ -372,7 +359,7 @@ class ReplayEngine {
 
     const currentTime = Date.now();
     const elapsedRealTime = (currentTime - this.replayStartTime) * this.replaySpeed;
-    const targetEventTime = this.sessionEventStartTime + elapsedRealTime; // Use sessionEventStartTime as base
+    const targetEventTime = this.sessionEventStartTime + elapsedRealTime;
 
     let eventsToProcess = [];
     while (this.currentEventIndex < this.events.length &&
@@ -381,34 +368,55 @@ class ReplayEngine {
       this.currentEventIndex++;
     }
 
+    const currentProgressFrac = this.totalDurationMs > 0 ? (elapsedRealTime / this.totalDurationMs) : 0;
+    this.updateTrackCoordinates(currentProgressFrac);
+
     if (eventsToProcess.length > 0) {
       this.eventsProcessedSinceLastLog += eventsToProcess.length;
       eventsToProcess.forEach(event => this.applyEventToSnapshot(event));
-      this.broadcast({ type: 'snapshot', payload: this.currentSnapshot });
-      this.broadcast({
-        type: 'control_state',
-        payload: {
-          progress: this.getProgress(),
-          currentLap: this.getCurrentLap(),
-          globalBestLap: this.globalBestLap,
-          globalBestSectors: this.globalBestSectors,
-        }
-      });
     }
 
-    // Log events/sec
-    if (currentTime - this.lastLogTime >= 1000) {
-      // console.log(`Processed ${this.eventsProcessedSinceLastLog} events/sec`);
-      this.eventsProcessedSinceLastLog = 0;
-      this.lastLogTime = currentTime;
-    }
+    // Maintain stable current lap
+    const totalLaps = this.sessionInfo?.session_laps || 52;
+    const estimatedLap = Math.min(totalLaps, Math.max(1, Math.floor(currentProgressFrac * totalLaps) + 1));
+    const snapshotLaps = Object.values(this.currentSnapshot).map(d => d.lapNumber || 0);
+    this.activeLapNumber = Math.max(estimatedLap, ...snapshotLaps);
+
+    this.broadcast({ type: 'snapshot', payload: this.currentSnapshot });
+    this.broadcast({
+      type: 'control_state',
+      payload: {
+        progress: this.getProgress(),
+        currentLap: this.getCurrentLap(),
+        totalLaps: this.sessionInfo ? (this.sessionInfo.session_laps || 52) : 52,
+        globalBestLap: this.globalBestLap,
+        globalBestSectors: this.globalBestSectors,
+      }
+    });
+  }
+
+  updateTrackCoordinates(overallProgress) {
+    const circuit = getCircuit(this.sessionInfo ? this.sessionInfo.circuit_short_name : 'Silverstone');
+    const totalLaps = this.sessionInfo?.session_laps || 52;
+
+    Object.values(this.currentSnapshot).forEach(driver => {
+      const pos = driver.position || 10;
+      const lapProgress = ((driver.lapNumber || 1) + (overallProgress * totalLaps % 1));
+      const trackProgress = (lapProgress + (20 - pos) * 0.003) % 1;
+
+      const lateral = (pos % 2 === 0 ? 8 : -8);
+      const coords = interpolateTrackPosition(circuit, trackProgress, lateral);
+
+      driver.x = coords.x;
+      driver.y = coords.y;
+      driver.trackProgress = trackProgress;
+    });
   }
 
   applyEventToSnapshot(event, isSeek = false) {
     const driver = this.currentSnapshot[event.driverId];
-    if (!driver) return; // Should not happen if drivers are initialized correctly
+    if (!driver) return;
 
-    // Reset flash and positionChanged for all drivers before applying new event
     if (!isSeek) {
       Object.values(this.currentSnapshot).forEach(d => {
         d.flash = false;
@@ -418,49 +426,33 @@ class ReplayEngine {
 
     switch (event.kind) {
       case 'lap':
-        driver.lapNumber = event.lapNumber;
+        driver.lapNumber = Math.max(driver.lapNumber || 1, event.lapNumber);
         driver.lastLapTime = event.lapTimeSeconds;
         driver.sectorTimes = event.sectorTimes;
         driver.isPitLap = event.isPitLap;
         driver.tyres = event.tyres;
-        driver.flash = true; // Flash on lap completion
+        driver.flash = true;
 
-        // Update driver's best lap
-        if (event.lapTimeSeconds !== null && (!this.driverBestLaps[driver.driverId].overall || event.lapTimeSeconds < this.driverBestLaps[driver.driverId].overall)) {
-          this.driverBestLaps[driver.driverId].overall = event.lapTimeSeconds;
+        if (event.lapNumber && event.lapNumber > this.activeLapNumber) {
+          this.activeLapNumber = event.lapNumber;
+        }
+
+        if (event.lapTimeSeconds !== null && (!this.driverBestLaps[driver.driverId]?.overall || event.lapTimeSeconds < this.driverBestLaps[driver.driverId].overall)) {
+          this.driverBestLaps[driver.driverId] = { overall: event.lapTimeSeconds };
           driver.bestLapTime = event.lapTimeSeconds;
         }
-        // Update global best lap
         if (event.lapTimeSeconds !== null && (!this.globalBestLap || event.lapTimeSeconds < this.globalBestLap)) {
           this.globalBestLap = event.lapTimeSeconds;
         }
 
-        // Update best sectors
-        event.sectorTimes.forEach((sTime, index) => {
-          if (sTime !== null) {
-            if (!this.driverBestSectors[driver.driverId][index] || sTime < this.driverBestSectors[driver.driverId][index]) {
-              this.driverBestSectors[driver.driverId][index] = sTime;
-              driver.bestSectorTimes[index] = sTime; // Update driver's current best sector
-            }
-            // Update global best sector
-            if (!this.globalBestSectors[index] || sTime < this.globalBestSectors[index]) {
-              this.globalBestSectors[index] = sTime;
-            }
-          }
-        });
-        break;
-      case 'sector':
-        // If a sector event comes without a lap event, update sector times
-        if (event.sectorTimes) {
+        if (Array.isArray(event.sectorTimes)) {
           event.sectorTimes.forEach((sTime, index) => {
             if (sTime !== null) {
-              driver.sectorTimes[index] = sTime;
-              // Update driver's current best sector if it's an improvement
-              if (!this.driverBestSectors[driver.driverId][index] || sTime < this.driverBestSectors[driver.driverId][index]) {
+              if (!this.driverBestSectors[driver.driverId]?.[index] || sTime < this.driverBestSectors[driver.driverId][index]) {
+                if (!this.driverBestSectors[driver.driverId]) this.driverBestSectors[driver.driverId] = [null, null, null];
                 this.driverBestSectors[driver.driverId][index] = sTime;
                 driver.bestSectorTimes[index] = sTime;
               }
-              // Update global best sector
               if (!this.globalBestSectors[index] || sTime < this.globalBestSectors[index]) {
                 this.globalBestSectors[index] = sTime;
               }
@@ -468,22 +460,37 @@ class ReplayEngine {
           });
         }
         break;
-      case 'pit':
-        driver.isPitLap = true; // Mark as pit for the lap
-        driver.tyres = event.tyres; // Update tyres immediately
-        driver.pitStopCount += 1; // Increment pit stop counter
-        driver.flash = true; // Flash on pit event
+
+      case 'sector':
+        if (Array.isArray(event.sectorTimes)) {
+          event.sectorTimes.forEach((sTime, index) => {
+            if (sTime !== null) {
+              driver.sectorTimes[index] = sTime;
+              if (!this.driverBestSectors[driver.driverId]?.[index] || sTime < this.driverBestSectors[driver.driverId][index]) {
+                if (!this.driverBestSectors[driver.driverId]) this.driverBestSectors[driver.driverId] = [null, null, null];
+                this.driverBestSectors[driver.driverId][index] = sTime;
+                driver.bestSectorTimes[index] = sTime;
+              }
+              if (!this.globalBestSectors[index] || sTime < this.globalBestSectors[index]) {
+                this.globalBestSectors[index] = sTime;
+              }
+            }
+          });
+        }
         break;
+
+      case 'pit':
+        driver.isPitLap = true;
+        driver.tyres = event.tyres;
+        driver.pitStopCount += 1;
+        driver.flash = true;
+        break;
+
       case 'position':
         if (driver.position !== null && event.position !== driver.position) {
-          driver.positionChanged = event.position < driver.position ? 1 : -1; // 1 for up, -1 for down
+          driver.positionChanged = event.position < driver.position ? 1 : -1;
         }
         driver.position = event.position;
-        break;
-      case 'location':
-        driver.x = event.x;
-        driver.y = event.y;
-        driver.z = event.z;
         break;
     }
   }
@@ -492,21 +499,23 @@ class ReplayEngine {
     if (this.totalDurationMs === 0) return 0;
     if (this.currentEventIndex === 0) return 0;
 
-    // Ensure currentEventTime is a valid number
     const currentEventTime = this.events[this.currentEventIndex - 1]?.timestamp?.getTime();
-    if (isNaN(currentEventTime)) return 0; // Fallback if timestamp is invalid
+    if (isNaN(currentEventTime)) return 0;
 
     const elapsedEventTime = currentEventTime - this.sessionEventStartTime;
-    return Math.min(100, (elapsedEventTime / this.totalDurationMs) * 100);
+    return Math.min(100, Math.max(0, (elapsedEventTime / this.totalDurationMs) * 100));
   }
 
   getCurrentLap() {
-    if (this.currentEventIndex === 0) return 0;
-    return this.events[this.currentEventIndex - 1].lapNumber || 0;
+    return Math.max(1, this.activeLapNumber || 1);
   }
 
   getSessionInfo() {
-    return this.sessionInfo;
+    const circuit = getCircuit(this.sessionInfo ? this.sessionInfo.circuit_short_name : 'Silverstone');
+    return {
+      ...(this.sessionInfo || {}),
+      circuit,
+    };
   }
 }
 
