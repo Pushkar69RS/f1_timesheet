@@ -1,0 +1,22 @@
+{
+  "name": "pacetracer-f1-telemetry",
+  "version": "1.0.0",
+  "description": "2026 Formula 1 Telemetry & Circuit Replay Platform",
+  "scripts": {
+    "build": "cd frontend && npm install && npm run build && cd ../backend && npm install",
+    "start": "node backend/src/server.js",
+    "dev:backend": "cd backend && npm run dev",
+    "dev:frontend": "cd frontend && npm run dev",
+    "dev": "npm run build && npm start",
+    "test": "cd backend && npm test && cd ../frontend && npm run lint"
+  },
+  "keywords": [
+    "formula1",
+    "telemetry",
+    "react",
+    "nodejs",
+    "websockets"
+  ],
+  "author": "Pushkar",
+  "license": "ISC"
+}

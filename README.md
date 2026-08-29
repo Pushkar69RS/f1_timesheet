@@ -158,6 +158,45 @@ npm run build
 
 ---
 
+## 🌐 Free Cloud Hosting & Deployment
+
+### Option 1: 1-Click Deploy on Render.com (Recommended — Fullstack + WebSockets)
+1. Sign up for free at **[Render.com](https://render.com)** and connect your GitHub account.
+2. Click **New +** → **Web Service**.
+3. Select your repository `https://github.com/Pushkar69RS/f1_timesheet`.
+4. Configure the service:
+   - **Environment**: `Node`
+   - **Build Command**: `npm run build`
+   - **Start Command**: `npm start`
+   - **Plan**: `Free`
+5. Click **Create Web Service**.
+6. Render automatically builds the frontend bundle, starts the Node WebSocket server, and provides a live HTTPS URL (e.g. `https://f1-timesheet.onrender.com`)!
+
+---
+
+### Option 2: 1-Click Deploy on Railway.app
+1. Go to **[Railway.app](https://railway.app)** and log in with GitHub.
+2. Click **New Project** → **Deploy from GitHub repo** → select `f1_timesheet`.
+3. Railway automatically detects `package.json`, runs `npm run build`, and exposes the live URL with full WebSocket support.
+
+---
+
+### Option 3: Split Deployment (Vercel Frontend + Render Backend)
+- **Backend (Render)**:
+  - Root directory: `backend`
+  - Build command: `npm install`
+  - Start command: `node src/server.js`
+  - Get your live backend URL: `https://your-backend.onrender.com`
+- **Frontend (Vercel)**:
+  - Import repo on **[Vercel](https://vercel.com)**
+  - Root directory: `frontend`
+  - Add Environment Variables:
+    - `VITE_API_URL`: `https://your-backend.onrender.com/api`
+    - `VITE_WS_URL`: `wss://your-backend.onrender.com/ws`
+  - Deploy!
+
+---
+
 ## 🐳 Docker Deployment
 
 Run the complete multi-container setup via Docker Compose:
@@ -172,3 +211,4 @@ docker-compose up --build
 
 ## 📄 License
 ISC License &copy; 2026 PaceTracer.
+

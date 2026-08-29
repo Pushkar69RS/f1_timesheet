@@ -10,8 +10,16 @@ import WeatherWidget from '../components/WeatherWidget';
 import RaceControlFeed from '../components/RaceControlFeed';
 import TelemetryCompareModal from '../components/TelemetryCompareModal';
 
-const WS_URL = `ws://${window.location.hostname}:3001/ws`;
-const API_BASE_URL = `http://${window.location.hostname}:3001/api`;
+const isHttps = typeof window !== 'undefined' && window.location.protocol === 'https:';
+const wsProtocol = isHttps ? 'wss:' : 'ws:';
+const httpProtocol = isHttps ? 'https:' : 'http:';
+
+const defaultApiHost = (typeof window !== 'undefined' && window.location.port === '5173')
+  ? `${window.location.hostname}:3001`
+  : (typeof window !== 'undefined' ? window.location.host : 'localhost:3001');
+
+const API_BASE_URL = import.meta.env.VITE_API_URL || `${httpProtocol}//${defaultApiHost}/api`;
+const WS_URL = import.meta.env.VITE_WS_URL || `${wsProtocol}//${defaultApiHost}/ws`;
 
 const SESSIONS_2026 = [
   { key: '2026-01', name: 'R1: Australian GP', circuit: 'Melbourne', flag: '🇦🇺' },
