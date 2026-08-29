@@ -12,6 +12,18 @@
 
 ---
 
+## 📸 Screenshots Showcase
+
+| **2026 Telemetry Dashboard (Bahrain GP)** | **2026 Landing Page & Specs** |
+| :---: | :---: |
+| ![Bahrain GP Telemetry Dashboard](screenshots/03_dashboard_bahrain_gp.png) | ![Landing Page Hero](screenshots/01_landing_page_hero.png) |
+
+| **24-Round 2026 Calendar Grid** | **Silverstone Circuit Replay** |
+| :---: | :---: |
+| ![2026 F1 Calendar](screenshots/02_landing_page_calendar.png) | ![Silverstone Circuit Replay](screenshots/04_dashboard_silverstone_gp.png) |
+
+---
+
 ## 🌟 Key Features
 
 ### 📡 Real-Time WebSocket Telemetry Engine (50ms Broadcast Ticks)

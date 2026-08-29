@@ -182,6 +182,14 @@ function Dashboard() {
 
   useEffect(() => {
     fetchSessionInfo();
+    fetch(`${API_BASE_URL}/snapshot`)
+      .then(res => res.json())
+      .then(data => {
+        if (data && Object.keys(data).length > 0) {
+          setDrivers(data);
+        }
+      })
+      .catch(err => console.error('Failed to fetch initial snapshot:', err));
     connectWebSocket();
 
     return () => {
