@@ -1,5 +1,5 @@
 // frontend/src/utils/soundFx.js
-// Native Web Audio API Synthesizer for F1 Broadcast Sounds (Zero external MP3 dependencies)
+// Native Web Audio API & Speech Synthesis for F1 Sounds and Spoken Radio Audio
 
 class SoundFXEngine {
   constructor() {
@@ -32,6 +32,9 @@ class SoundFXEngine {
 
   setMuted(muted) {
     this.isMuted = muted;
+    if (muted && typeof window !== 'undefined' && window.speechSynthesis) {
+      window.speechSynthesis.cancel();
+    }
     try {
       localStorage.setItem('pacetracer_muted', JSON.stringify(muted));
     } catch {
@@ -68,7 +71,52 @@ class SoundFXEngine {
     osc.stop(t + 0.13);
   }
 
-  // 2. Five Red Lights - Light On Step Beep
+  // 2. Spoken Team Radio Voice with Radio Chirps
+  speakRadioVoice(text, options = {}) {
+    if (this.isMuted) return;
+    this.playRadioChirp();
+
+    if (typeof window === 'undefined' || !window.speechSynthesis) {
+      return;
+    }
+
+    // Cancel any previous speech
+    window.speechSynthesis.cancel();
+
+    const cleanText = text.replace(/["']/g, '');
+    const utterance = new SpeechSynthesisUtterance(cleanText);
+
+    utterance.pitch = options.pitch !== undefined ? options.pitch : 1.05;
+    utterance.rate = options.rate !== undefined ? options.rate : 1.05;
+
+    // Pick best English voice if available
+    const voices = window.speechSynthesis.getVoices();
+    if (voices && voices.length > 0) {
+      if (options.lang === 'en-GB') {
+        const gbVoice = voices.find(v => v.lang.includes('en-GB') || v.name.includes('UK') || v.name.includes('British'));
+        if (gbVoice) utterance.voice = gbVoice;
+      } else {
+        const enVoice = voices.find(v => v.lang.startsWith('en'));
+        if (enVoice) utterance.voice = enVoice;
+      }
+    }
+
+    utterance.onend = () => {
+      this.playRadioChirp();
+      if (options.onEnd) options.onEnd();
+    };
+
+    utterance.onerror = () => {
+      if (options.onEnd) options.onEnd();
+    };
+
+    // Small delay so opening chirp is heard clearly first
+    setTimeout(() => {
+      window.speechSynthesis.speak(utterance);
+    }, 140);
+  }
+
+  // 3. Five Red Lights - Light On Step Beep
   playLightOnBeep() {
     if (this.isMuted) return;
     this._initContext();
@@ -79,7 +127,7 @@ class SoundFXEngine {
     const gain = this.ctx.createGain();
 
     osc.type = 'triangle';
-    osc.frequency.setValueAtTime(440, t); // Low A
+    osc.frequency.setValueAtTime(440, t);
 
     gain.gain.setValueAtTime(this.volume * 0.3, t);
     gain.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
@@ -91,7 +139,7 @@ class SoundFXEngine {
     osc.stop(t + 0.16);
   }
 
-  // 3. Lights Out - Green Launch Beep
+  // 4. Lights Out - Green Launch Beep
   playLightsOutBeep() {
     if (this.isMuted) return;
     this._initContext();
@@ -115,7 +163,7 @@ class SoundFXEngine {
     osc.stop(t + 0.31);
   }
 
-  // 4. Overtake Broadcast Alert Chime
+  // 5. Overtake Broadcast Alert Chime
   playOvertakeChime() {
     if (this.isMuted) return;
     this._initContext();
@@ -143,7 +191,7 @@ class SoundFXEngine {
     });
   }
 
-  // 5. Pit Limiter Pulsing Beep
+  // 6. Pit Limiter Pulsing Beep
   playPitLimiter() {
     if (this.isMuted) return;
     this._initContext();
@@ -169,7 +217,7 @@ class SoundFXEngine {
     }
   }
 
-  // 6. Chequered Flag Victory Fanfare
+  // 7. Chequered Flag Victory Fanfare
   playVictoryFanfare() {
     if (this.isMuted) return;
     this._initContext();
@@ -177,10 +225,10 @@ class SoundFXEngine {
 
     const t = this.ctx.currentTime;
     const chords = [
-      { notes: [523.25, 659.25, 783.99], time: 0, dur: 0.18 }, // C major
-      { notes: [587.33, 739.99, 880.00], time: 0.2, dur: 0.18 }, // D major
-      { notes: [659.25, 830.61, 987.77], time: 0.4, dur: 0.18 }, // E major
-      { notes: [783.99, 987.77, 1174.66, 1567.98], time: 0.65, dur: 0.6 } // High G major
+      { notes: [523.25, 659.25, 783.99], time: 0, dur: 0.18 },
+      { notes: [587.33, 739.99, 880.00], time: 0.2, dur: 0.18 },
+      { notes: [659.25, 830.61, 987.77], time: 0.4, dur: 0.18 },
+      { notes: [783.99, 987.77, 1174.66, 1567.98], time: 0.65, dur: 0.6 }
     ];
 
     chords.forEach(chord => {
@@ -204,7 +252,7 @@ class SoundFXEngine {
     });
   }
 
-  // 7. Safety Car Strobe Siren Chime
+  // 8. Safety Car Strobe Siren Chime
   playSafetyCarSiren() {
     if (this.isMuted) return;
     this._initContext();
