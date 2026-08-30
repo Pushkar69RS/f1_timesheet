@@ -2,30 +2,30 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const RACES_2025 = [
-  { round: 1, key: '2025-01', name: 'Australian Grand Prix', location: 'Melbourne, Australia', circuit: 'Albert Park Circuit', date: 'March 14–16, 2025', flag: '🇦🇺', laps: 58, isSprint: false },
-  { round: 2, key: '2025-02', name: 'Chinese Grand Prix', location: 'Shanghai, China', circuit: 'Shanghai International Circuit', date: 'March 21–23, 2025', flag: '🇨🇳', laps: 56, isSprint: true },
-  { round: 3, key: '2025-03', name: 'Japanese Grand Prix', location: 'Suzuka, Japan', circuit: 'Suzuka Circuit', date: 'April 4–6, 2025', flag: '🇯🇵', laps: 53, isSprint: false },
-  { round: 4, key: '2025-04', name: 'Bahrain Grand Prix', location: 'Sakhir, Bahrain', circuit: 'Bahrain International Circuit', date: 'April 11–13, 2025', flag: '🇧🇭', laps: 57, isSprint: false },
-  { round: 5, key: '2025-05', name: 'Saudi Arabian Grand Prix', location: 'Jeddah, Saudi Arabia', circuit: 'Jeddah Corniche Circuit', date: 'April 18–20, 2025', flag: '🇸🇦', laps: 50, isSprint: false },
-  { round: 6, key: '2025-06', name: 'Miami Grand Prix', location: 'Miami, USA', circuit: 'Miami International Autodrome', date: 'May 2–4, 2025', flag: '🇺🇸', laps: 57, isSprint: true },
-  { round: 7, key: '2025-07', name: 'Emilia Romagna Grand Prix', location: 'Imola, Italy', circuit: 'Autodromo Enzo e Dino Ferrari', date: 'May 16–18, 2025', flag: '🇮🇹', laps: 63, isSprint: false },
-  { round: 8, key: '2025-08', name: 'Monaco Grand Prix', location: 'Monte Carlo, Monaco', circuit: 'Circuit de Monaco', date: 'May 23–25, 2025', flag: '🇲🇨', laps: 78, isSprint: false },
-  { round: 9, key: '2025-09', name: 'Spanish Grand Prix', location: 'Barcelona, Spain', circuit: 'Circuit de Barcelona-Catalunya', date: 'May 30–June 1, 2025', flag: '🇪🇸', laps: 66, isSprint: false },
-  { round: 10, key: '2025-10', name: 'Canadian Grand Prix', location: 'Montreal, Canada', circuit: 'Circuit Gilles-Villeneuve', date: 'June 13–15, 2025', flag: '🇨🇦', laps: 70, isSprint: false },
-  { round: 11, key: '2025-11', name: 'Austrian Grand Prix', location: 'Spielberg, Austria', circuit: 'Red Bull Ring', date: 'June 27–29, 2025', flag: '🇦🇹', laps: 71, isSprint: false },
-  { round: 12, key: '2025-12', name: 'British Grand Prix', location: 'Silverstone, Great Britain', circuit: 'Silverstone Circuit', date: 'July 4–6, 2025', flag: '🇬🇧', laps: 52, isSprint: false },
-  { round: 13, key: '2025-13', name: 'Belgian Grand Prix', location: 'Stavelot, Belgium', circuit: 'Circuit de Spa-Francorchamps', date: 'July 25–27, 2025', flag: '🇧🇪', laps: 44, isSprint: true },
-  { round: 14, key: '2025-14', name: 'Hungarian Grand Prix', location: 'Budapest, Hungary', circuit: 'Hungaroring', date: 'August 1–3, 2025', flag: '🇭🇺', laps: 70, isSprint: false },
-  { round: 15, key: '2025-15', name: 'Dutch Grand Prix', location: 'Zandvoort, Netherlands', circuit: 'Circuit Zandvoort', date: 'August 29–31, 2025', flag: '🇳🇱', laps: 72, isSprint: false },
-  { round: 16, key: '2025-16', name: 'Italian Grand Prix', location: 'Monza, Italy', circuit: 'Autodromo Nazionale Monza', date: 'September 5–7, 2025', flag: '🇮🇹', laps: 53, isSprint: false },
-  { round: 17, key: '2025-17', name: 'Azerbaijan Grand Prix', location: 'Baku, Azerbaijan', circuit: 'Baku City Circuit', date: 'September 19–21, 2025', flag: '🇦🇿', laps: 51, isSprint: false },
-  { round: 18, key: '2025-18', name: 'Singapore Grand Prix', location: 'Marina Bay, Singapore', circuit: 'Marina Bay Street Circuit', date: 'October 3–5, 2025', flag: '🇸🇬', laps: 62, isSprint: false },
-  { round: 19, key: '2025-19', name: 'United States Grand Prix', location: 'Austin, USA', circuit: 'Circuit of the Americas', date: 'October 17–19, 2025', flag: '🇺🇸', laps: 56, isSprint: true },
-  { round: 20, key: '2025-20', name: 'Mexico City Grand Prix', location: 'Mexico City, Mexico', circuit: 'Autódromo Hermanos Rodríguez', date: 'October 24–26, 2025', flag: '🇲🇽', laps: 71, isSprint: false },
-  { round: 21, key: '2025-21', name: 'São Paulo Grand Prix', location: 'São Paulo, Brazil', circuit: 'Autódromo José Carlos Pace', date: 'November 7–9, 2025', flag: '🇧🇷', laps: 71, isSprint: true },
-  { round: 22, key: '2025-22', name: 'Las Vegas Grand Prix', location: 'Las Vegas, USA', circuit: 'Las Vegas Strip Circuit', date: 'November 20–22, 2025', flag: '🇺🇸', laps: 50, isSprint: false },
-  { round: 23, key: '2025-23', name: 'Qatar Grand Prix', location: 'Lusail, Qatar', circuit: 'Lusail International Circuit', date: 'November 28–30, 2025', flag: '🇶🇦', laps: 57, isSprint: true },
-  { round: 24, key: '2025-24', name: 'Abu Dhabi Grand Prix', location: 'Yas Marina, UAE', circuit: 'Yas Marina Circuit', date: 'December 5–7, 2025', flag: '🇦🇪', laps: 58, isSprint: false },
+  { round: 1, key: '2025-01', name: 'Australian Grand Prix', location: 'Melbourne, Australia', circuit: 'Albert Park Circuit', date: 'March 14–16, 2025', flag: '🇦🇺', laps: 58, isSprint: false, winner: 'Lando Norris', winnerNum: 4, team: 'McLaren', teamColour: '#FF8000' },
+  { round: 2, key: '2025-02', name: 'Chinese Grand Prix', location: 'Shanghai, China', circuit: 'Shanghai International Circuit', date: 'March 21–23, 2025', flag: '🇨🇳', laps: 56, isSprint: true, winner: 'Oscar Piastri', winnerNum: 81, team: 'McLaren', teamColour: '#FF8000' },
+  { round: 3, key: '2025-03', name: 'Japanese Grand Prix', location: 'Suzuka, Japan', circuit: 'Suzuka Circuit', date: 'April 4–6, 2025', flag: '🇯🇵', laps: 53, isSprint: false, winner: 'Max Verstappen', winnerNum: 1, team: 'Red Bull Racing', teamColour: '#3671C6' },
+  { round: 4, key: '2025-04', name: 'Bahrain Grand Prix', location: 'Sakhir, Bahrain', circuit: 'Bahrain International Circuit', date: 'April 11–13, 2025', flag: '🇧🇭', laps: 57, isSprint: false, winner: 'Oscar Piastri', winnerNum: 81, team: 'McLaren', teamColour: '#FF8000' },
+  { round: 5, key: '2025-05', name: 'Saudi Arabian Grand Prix', location: 'Jeddah, Saudi Arabia', circuit: 'Jeddah Corniche Circuit', date: 'April 18–20, 2025', flag: '🇸🇦', laps: 50, isSprint: false, winner: 'Oscar Piastri', winnerNum: 81, team: 'McLaren', teamColour: '#FF8000' },
+  { round: 6, key: '2025-06', name: 'Miami Grand Prix', location: 'Miami, USA', circuit: 'Miami International Autodrome', date: 'May 2–4, 2025', flag: '🇺🇸', laps: 57, isSprint: true, winner: 'Oscar Piastri', winnerNum: 81, team: 'McLaren', teamColour: '#FF8000' },
+  { round: 7, key: '2025-07', name: 'Emilia Romagna Grand Prix', location: 'Imola, Italy', circuit: 'Autodromo Enzo e Dino Ferrari', date: 'May 16–18, 2025', flag: '🇮🇹', laps: 63, isSprint: false, winner: 'Max Verstappen', winnerNum: 1, team: 'Red Bull Racing', teamColour: '#3671C6' },
+  { round: 8, key: '2025-08', name: 'Monaco Grand Prix', location: 'Monte Carlo, Monaco', circuit: 'Circuit de Monaco', date: 'May 23–25, 2025', flag: '🇲🇨', laps: 78, isSprint: false, winner: 'Lando Norris', winnerNum: 4, team: 'McLaren', teamColour: '#FF8000' },
+  { round: 9, key: '2025-09', name: 'Spanish Grand Prix', location: 'Barcelona, Spain', circuit: 'Circuit de Barcelona-Catalunya', date: 'May 30–June 1, 2025', flag: '🇪🇸', laps: 66, isSprint: false, winner: 'Oscar Piastri', winnerNum: 81, team: 'McLaren', teamColour: '#FF8000' },
+  { round: 10, key: '2025-10', name: 'Canadian Grand Prix', location: 'Montreal, Canada', circuit: 'Circuit Gilles-Villeneuve', date: 'June 13–15, 2025', flag: '🇨🇦', laps: 70, isSprint: false, winner: 'George Russell', winnerNum: 63, team: 'Mercedes', teamColour: '#27F4D2' },
+  { round: 11, key: '2025-11', name: 'Austrian Grand Prix', location: 'Spielberg, Austria', circuit: 'Red Bull Ring', date: 'June 27–29, 2025', flag: '🇦🇹', laps: 71, isSprint: false, winner: 'Lando Norris', winnerNum: 4, team: 'McLaren', teamColour: '#FF8000' },
+  { round: 12, key: '2025-12', name: 'British Grand Prix', location: 'Silverstone, Great Britain', circuit: 'Silverstone Circuit', date: 'July 4–6, 2025', flag: '🇬🇧', laps: 52, isSprint: false, winner: 'Lando Norris', winnerNum: 4, team: 'McLaren', teamColour: '#FF8000' },
+  { round: 13, key: '2025-13', name: 'Belgian Grand Prix', location: 'Stavelot, Belgium', circuit: 'Circuit de Spa-Francorchamps', date: 'July 25–27, 2025', flag: '🇧🇪', laps: 44, isSprint: true, winner: 'Oscar Piastri', winnerNum: 81, team: 'McLaren', teamColour: '#FF8000' },
+  { round: 14, key: '2025-14', name: 'Hungarian Grand Prix', location: 'Budapest, Hungary', circuit: 'Hungaroring', date: 'August 1–3, 2025', flag: '🇭🇺', laps: 70, isSprint: false, winner: 'Lando Norris', winnerNum: 4, team: 'McLaren', teamColour: '#FF8000' },
+  { round: 15, key: '2025-15', name: 'Dutch Grand Prix', location: 'Zandvoort, Netherlands', circuit: 'Circuit Zandvoort', date: 'August 29–31, 2025', flag: '🇳🇱', laps: 72, isSprint: false, winner: 'Oscar Piastri', winnerNum: 81, team: 'McLaren', teamColour: '#FF8000' },
+  { round: 16, key: '2025-16', name: 'Italian Grand Prix', location: 'Monza, Italy', circuit: 'Autodromo Nazionale Monza', date: 'September 5–7, 2025', flag: '🇮🇹', laps: 53, isSprint: false, winner: 'Max Verstappen', winnerNum: 1, team: 'Red Bull Racing', teamColour: '#3671C6' },
+  { round: 17, key: '2025-17', name: 'Azerbaijan Grand Prix', location: 'Baku, Azerbaijan', circuit: 'Baku City Circuit', date: 'September 19–21, 2025', flag: '🇦🇿', laps: 51, isSprint: false, winner: 'Max Verstappen', winnerNum: 1, team: 'Red Bull Racing', teamColour: '#3671C6' },
+  { round: 18, key: '2025-18', name: 'Singapore Grand Prix', location: 'Marina Bay, Singapore', circuit: 'Marina Bay Street Circuit', date: 'October 3–5, 2025', flag: '🇸🇬', laps: 62, isSprint: false, winner: 'George Russell', winnerNum: 63, team: 'Mercedes', teamColour: '#27F4D2' },
+  { round: 19, key: '2025-19', name: 'United States Grand Prix', location: 'Austin, USA', circuit: 'Circuit of the Americas', date: 'October 17–19, 2025', flag: '🇺🇸', laps: 56, isSprint: true, winner: 'Max Verstappen', winnerNum: 1, team: 'Red Bull Racing', teamColour: '#3671C6' },
+  { round: 20, key: '2025-20', name: 'Mexico City Grand Prix', location: 'Mexico City, Mexico', circuit: 'Autódromo Hermanos Rodríguez', date: 'October 24–26, 2025', flag: '🇲🇽', laps: 71, isSprint: false, winner: 'Lando Norris', winnerNum: 4, team: 'McLaren', teamColour: '#FF8000' },
+  { round: 21, key: '2025-21', name: 'São Paulo Grand Prix', location: 'São Paulo, Brazil', circuit: 'Autódromo José Carlos Pace', date: 'November 7–9, 2025', flag: '🇧🇷', laps: 71, isSprint: true, winner: 'Lando Norris', winnerNum: 4, team: 'McLaren', teamColour: '#FF8000' },
+  { round: 22, key: '2025-22', name: 'Las Vegas Grand Prix', location: 'Las Vegas, USA', circuit: 'Las Vegas Strip Circuit', date: 'November 20–22, 2025', flag: '🇺🇸', laps: 50, isSprint: false, winner: 'Max Verstappen', winnerNum: 1, team: 'Red Bull Racing', teamColour: '#3671C6' },
+  { round: 23, key: '2025-23', name: 'Qatar Grand Prix', location: 'Lusail, Qatar', circuit: 'Lusail International Circuit', date: 'November 28–30, 2025', flag: '🇶🇦', laps: 57, isSprint: true, winner: 'Max Verstappen', winnerNum: 1, team: 'Red Bull Racing', teamColour: '#3671C6' },
+  { round: 24, key: '2025-24', name: 'Abu Dhabi Grand Prix', location: 'Yas Marina, UAE', circuit: 'Yas Marina Circuit', date: 'December 5–7, 2025', flag: '🇦🇪', laps: 58, isSprint: false, winner: 'Max Verstappen', winnerNum: 1, team: 'Red Bull Racing', teamColour: '#3671C6', note: 'Lando Norris P3 (WDC Champion)' },
 ];
 
 const TEAMS_2025 = [
@@ -36,14 +36,14 @@ const TEAMS_2025 = [
   { name: 'Aston Martin', colour: '#229971', engine: 'Mercedes-AMG', drivers: ['Fernando Alonso #14', 'Lance Stroll #18'], badge: 'AMR' },
   { name: 'Williams Racing', colour: '#64C4FF', engine: 'Mercedes-AMG', drivers: ['Carlos Sainz #55', 'Alexander Albon #23'], badge: 'WIL' },
   { name: 'Stake F1 Team Sauber', colour: '#52E252', engine: 'Ferrari Hybrid', drivers: ['Nico Hülkenberg #27', 'Gabriel Bortoleto #5'], badge: 'SAUBER' },
-  { name: 'BWT Alpine', colour: '#0093CC', engine: 'Renault E-Tech', drivers: ['Pierre Gasly #10', 'Jack Doohan #7'], badge: 'ALP' },
+  { name: 'BWT Alpine', colour: '#0093CC', engine: 'Renault E-Tech', drivers: ['Pierre Gasly #10', 'Jack Doohan #7 / Colapinto #43'], badge: 'ALP' },
   { name: 'MoneyGram Haas', colour: '#B6BABD', engine: 'Ferrari Hybrid', drivers: ['Esteban Ocon #31', 'Oliver Bearman #87'], badge: 'HAAS' },
   { name: 'Visa Cash App RB', colour: '#6692FF', engine: 'Honda RBPT', drivers: ['Yuki Tsunoda #22', 'Isack Hadjar #6'], badge: 'VCARB' },
 ];
 
 export default function LandingPage() {
   const navigate = useNavigate();
-  const [selectedRace, setSelectedRace] = useState(RACES_2025[11]); // Default to Silverstone
+  const [selectedRace, setSelectedRace] = useState(RACES_2025[23]); // Default to Abu Dhabi Finale
   const [darkMode, setDarkMode] = useState(true);
 
   useEffect(() => {
@@ -70,7 +70,7 @@ export default function LandingPage() {
   };
 
   const handleLaunchRace = (raceKey) => {
-    const targetKey = raceKey || '2025-12';
+    const targetKey = raceKey || '2025-24';
     fetch(`http://${window.location.hostname}:3001/api/load-session`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -140,7 +140,7 @@ export default function LandingPage() {
             </h1>
 
             <p className="text-gray-600 dark:text-gray-400 text-base lg:text-lg leading-relaxed max-w-2xl">
-              Experience the historic 2025 Formula 1 season featuring Lewis Hamilton in Scuderia Ferrari scarlet, Carlos Sainz at Williams, Kimi Antonelli at Mercedes, and Gabriel Bortoleto at Stake Sauber. Replay all 24 Grands Prix with 60 FPS track coordinates, live gaps, and calibrated race outcomes.
+              Experience the historic 2025 Formula 1 season featuring Lewis Hamilton in Scuderia Ferrari scarlet, Carlos Sainz at Williams, Kimi Antonelli at Mercedes, and Gabriel Bortoleto at Stake Sauber. Replay all 24 Grands Prix with 60 FPS track coordinates, live gaps, and 100% verified real-world FIA race classifications.
             </p>
 
             {/* Feature Highlights Badges */}
@@ -207,12 +207,12 @@ export default function LandingPage() {
                   <span className="font-bold text-green-600 dark:text-green-400">798 kg (with driver)</span>
                 </div>
                 <div className="p-3 rounded-lg bg-gray-50 dark:bg-gray-950/80 border border-gray-200 dark:border-gray-800/80 flex justify-between items-center">
-                  <span className="text-gray-500 dark:text-gray-400">Marquee Move:</span>
-                  <span className="font-bold text-[#E80020]">Lewis Hamilton #44 (Ferrari)</span>
+                  <span className="text-gray-500 dark:text-gray-400">2025 World Champion:</span>
+                  <span className="font-bold text-[#FF8000]">Lando Norris (423 PTS)</span>
                 </div>
                 <div className="p-3 rounded-lg bg-gray-50 dark:bg-gray-950/80 border border-gray-200 dark:border-gray-800/80 flex justify-between items-center">
-                  <span className="text-gray-500 dark:text-gray-400">Sauber Lineup:</span>
-                  <span className="font-bold text-[#52E252]">Hülkenberg #27 & Bortoleto #5</span>
+                  <span className="text-gray-500 dark:text-gray-400">2025 Constructors Champion:</span>
+                  <span className="font-bold text-[#FF8000]">McLaren-Mercedes (800+ PTS)</span>
                 </div>
               </div>
 
@@ -281,7 +281,7 @@ export default function LandingPage() {
         <div className="mb-8 flex flex-wrap justify-between items-end gap-4">
           <div>
             <span className="text-xs font-mono font-bold text-red-600 dark:text-red-500 uppercase tracking-widest block mb-1">
-              Official Schedule
+              Official Schedule & Winners
             </span>
             <h2 className="text-3xl font-black text-gray-900 dark:text-white">2025 FIA Formula 1 Race Calendar</h2>
           </div>
@@ -317,7 +317,18 @@ export default function LandingPage() {
                   </div>
                   <h3 className="font-bold text-sm text-gray-900 dark:text-white mb-0.5">{race.name}</h3>
                   <p className="text-[11px] text-gray-500 dark:text-gray-400 mb-1">{race.circuit}</p>
-                  <p className="text-[10px] text-red-600 dark:text-red-400 font-mono font-semibold">{race.date}</p>
+                  <p className="text-[10px] text-red-600 dark:text-red-400 font-mono font-semibold mb-2">{race.date}</p>
+
+                  {/* Official Winner Badge */}
+                  <div className="p-2 rounded-lg bg-gray-100 dark:bg-gray-950/80 border border-gray-200 dark:border-gray-800/80 flex items-center justify-between text-[11px] font-mono">
+                    <span className="text-gray-500 dark:text-gray-400 text-[10px]">Winner:</span>
+                    <div className="flex items-center gap-1.5">
+                      <div className="w-2 h-2 rounded-full" style={{ backgroundColor: race.teamColour }} />
+                      <span className="font-bold text-gray-900 dark:text-white">
+                        {race.winner} <span className="text-gray-500 text-[10px]">#{race.winnerNum}</span>
+                      </span>
+                    </div>
+                  </div>
                 </div>
 
                 <div className="mt-4 pt-2 border-t border-gray-100 dark:border-gray-800/60 flex items-center justify-between">
