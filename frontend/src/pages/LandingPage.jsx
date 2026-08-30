@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import ReactionGameModal from '../components/ReactionGameModal';
+import RadioSoundboardModal from '../components/RadioSoundboardModal';
 
 const RACES_2025 = [
   { round: 1, key: '2025-01', name: 'Australian Grand Prix', location: 'Melbourne, Australia', circuit: 'Albert Park Circuit', date: 'March 14–16, 2025', flag: '🇦🇺', laps: 58, isSprint: false, winner: 'Lando Norris', winnerNum: 4, team: 'McLaren', teamColour: '#FF8000' },
@@ -45,6 +47,8 @@ export default function LandingPage() {
   const navigate = useNavigate();
   const [selectedRace, setSelectedRace] = useState(RACES_2025[23]); // Default to Abu Dhabi Finale
   const [darkMode, setDarkMode] = useState(true);
+  const [isReactionModalOpen, setIsReactionModalOpen] = useState(false);
+  const [isRadioModalOpen, setIsRadioModalOpen] = useState(false);
 
   useEffect(() => {
     const savedMode = localStorage.getItem('darkMode');
@@ -107,16 +111,28 @@ export default function LandingPage() {
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5">
+            <button
+              onClick={() => setIsReactionModalOpen(true)}
+              className="p-2 px-3 rounded-lg bg-gray-100 dark:bg-gray-900 text-amber-500 hover:bg-gray-200 dark:hover:bg-gray-800 text-xs font-bold transition-colors border border-gray-200 dark:border-gray-800 flex items-center gap-1 font-mono"
+            >
+              <span>🚦</span> Reaction Test
+            </button>
+            <button
+              onClick={() => setIsRadioModalOpen(true)}
+              className="p-2 px-3 rounded-lg bg-gray-100 dark:bg-gray-900 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800 text-xs font-bold transition-colors border border-gray-200 dark:border-gray-800 flex items-center gap-1 font-mono"
+            >
+              <span>📻</span> Radio Deck
+            </button>
             <button
               onClick={toggleDarkMode}
               className="p-2 px-3 rounded-lg bg-gray-100 dark:bg-gray-900 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800 text-xs font-bold transition-colors border border-gray-200 dark:border-gray-800"
             >
-              {darkMode ? '☀️ Light' : '🌙 Dark'}
+              {darkMode ? '☀️' : '🌙'}
             </button>
             <button
               onClick={() => handleLaunchRace(selectedRace.key)}
-              className="px-5 py-2.5 bg-gradient-to-r from-red-600 to-[#E10600] hover:from-red-500 hover:to-red-600 text-white font-black text-xs uppercase tracking-wider rounded-lg transition-all shadow-lg shadow-red-600/30 hover:scale-105 active:scale-95 flex items-center gap-2"
+              className="px-4 py-2.5 bg-gradient-to-r from-red-600 to-[#E10600] hover:from-red-500 hover:to-red-600 text-white font-black text-xs uppercase tracking-wider rounded-lg transition-all shadow-lg shadow-red-600/30 hover:scale-105 active:scale-95 flex items-center gap-2 font-mono"
             >
               <span>Launch Telemetry</span>
               <span>→</span>
@@ -160,7 +176,7 @@ export default function LandingPage() {
             </div>
 
             {/* Action Buttons */}
-            <div className="flex flex-wrap items-center gap-4 pt-4">
+            <div className="flex flex-wrap items-center gap-4 pt-4 font-mono">
               <button
                 onClick={() => handleLaunchRace(selectedRace.key)}
                 className="px-8 py-4 bg-gradient-to-r from-red-600 to-[#E10600] hover:from-red-500 hover:to-red-600 text-white font-black text-sm uppercase tracking-wider rounded-xl transition-all shadow-xl shadow-red-600/40 hover:scale-105 active:scale-95 flex items-center gap-3"
@@ -168,13 +184,12 @@ export default function LandingPage() {
                 <span>ENTER 2025 DASHBOARD</span>
                 <span className="text-lg">🏎️</span>
               </button>
-              <a
-                href="#calendar-section"
-                className="px-6 py-4 bg-white dark:bg-gray-900/90 hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-800 dark:text-gray-300 hover:text-black dark:hover:text-white font-bold text-sm rounded-xl transition-colors border border-gray-200 dark:border-gray-800 flex items-center gap-2 shadow-sm"
+              <button
+                onClick={() => setIsReactionModalOpen(true)}
+                className="px-6 py-4 bg-white dark:bg-gray-900/90 hover:bg-gray-100 dark:hover:bg-gray-800 text-amber-500 dark:text-amber-400 font-bold text-sm rounded-xl transition-colors border border-amber-500/30 flex items-center gap-2 shadow-sm"
               >
-                <span>Explore 2025 Calendar</span>
-                <span>↓</span>
-              </a>
+                <span>🚦 Test Reaction Time</span>
+              </button>
             </div>
           </div>
 
@@ -224,7 +239,7 @@ export default function LandingPage() {
                 </div>
                 <button
                   onClick={() => handleLaunchRace(selectedRace.key)}
-                  className="px-3.5 py-1.5 bg-red-600 hover:bg-red-700 text-white font-bold text-xs rounded-lg transition-all shadow-md flex items-center gap-1.5"
+                  className="px-3.5 py-1.5 bg-red-600 hover:bg-red-700 text-white font-bold text-xs rounded-lg transition-all shadow-md flex items-center gap-1.5 font-mono"
                 >
                   <span>Simulate Race</span>
                   <span>▶</span>
@@ -338,7 +353,7 @@ export default function LandingPage() {
                       e.stopPropagation();
                       handleLaunchRace(race.key);
                     }}
-                    className="px-2.5 py-1 bg-red-600 hover:bg-red-700 text-white font-bold text-[10px] rounded transition-colors shadow-sm"
+                    className="px-2.5 py-1 bg-red-600 hover:bg-red-700 text-white font-bold text-[10px] rounded transition-colors shadow-sm font-mono"
                   >
                     Simulate ▶
                   </button>
@@ -348,6 +363,18 @@ export default function LandingPage() {
           })}
         </div>
       </section>
+
+      {/* 5 Red Lights Reaction Game Modal */}
+      <ReactionGameModal
+        isOpen={isReactionModalOpen}
+        onClose={() => setIsReactionModalOpen(false)}
+      />
+
+      {/* Radio Deck Modal */}
+      <RadioSoundboardModal
+        isOpen={isRadioModalOpen}
+        onClose={() => setIsRadioModalOpen(false)}
+      />
 
       {/* Footer */}
       <footer className="relative z-10 border-t border-gray-200 dark:border-gray-800/80 py-10 bg-white dark:bg-[#04060A] text-center text-xs text-gray-500 font-mono transition-colors">

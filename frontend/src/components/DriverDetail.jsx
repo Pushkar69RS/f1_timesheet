@@ -1,13 +1,14 @@
 import { getTeamColor, getTyreStyle } from '../utils/teamColors';
 import { formatTime } from '../utils/formatTime';
 import DriverAvatar from './DriverAvatar';
+import F1SteeringWheel from './F1SteeringWheel';
 
 const DriverDetail = ({ driver, onOpenCompare = () => {} }) => {
   if (!driver) {
     return (
-      <div className="bg-white dark:bg-[#111622] p-6 rounded-xl shadow-lg border border-gray-200 dark:border-gray-800 text-center text-gray-500 dark:text-gray-400 flex flex-col items-center justify-center min-h-[220px] transition-colors">
+      <div className="bg-white dark:bg-[#111622] p-6 rounded-xl shadow-lg border border-gray-200 dark:border-gray-800 text-center text-gray-500 dark:text-gray-400 flex flex-col items-center justify-center min-h-[220px] transition-colors font-sans">
         <span className="text-3xl mb-2">🏎️</span>
-        <p className="font-semibold text-sm">Select a driver from the timesheet or track map to inspect live 2026 telemetry.</p>
+        <p className="font-semibold text-sm">Select a driver from the timesheet or track map to inspect live telemetry & steering cockpit.</p>
       </div>
     );
   }
@@ -24,9 +25,9 @@ const DriverDetail = ({ driver, onOpenCompare = () => {} }) => {
   const drsStatus = (driver.position && driver.position > 1 && (driver.lapNumber || 1) > 1) ? 'DRS ACTIVE (OPEN)' : 'DRS AVAILABLE';
 
   return (
-    <div className="bg-white dark:bg-[#111622] p-5 rounded-xl shadow-lg border border-gray-200 dark:border-gray-800 transition-colors font-sans">
+    <div className="bg-white dark:bg-[#111622] p-5 rounded-xl shadow-lg border border-gray-200 dark:border-gray-800 transition-colors font-sans space-y-4">
       {/* Header */}
-      <div className="flex items-center gap-4 mb-4 pb-3 border-b border-gray-200 dark:border-gray-800">
+      <div className="flex items-center gap-4 pb-3 border-b border-gray-200 dark:border-gray-800">
         <DriverAvatar driver={driver} size="lg" />
         <div className="flex-grow">
           <div className="flex items-center justify-between">
@@ -43,6 +44,9 @@ const DriverDetail = ({ driver, onOpenCompare = () => {} }) => {
           <p className="text-xs text-gray-500 dark:text-gray-400 font-semibold">{teamName}</p>
         </div>
       </div>
+
+      {/* Interactive F1 Steering Wheel Cockpit (Shift LEDs & G-Force) */}
+      <F1SteeringWheel driver={driver} />
 
       {/* Grid Telemetry Stats */}
       <div className="grid grid-cols-2 gap-2.5 text-xs font-mono">
@@ -100,7 +104,7 @@ const DriverDetail = ({ driver, onOpenCompare = () => {} }) => {
       </div>
 
       {/* 2025 DRS & Hybrid Battery Indicators */}
-      <div className="mt-3 p-2.5 rounded-lg bg-gray-50 dark:bg-gray-950/80 border border-gray-200 dark:border-gray-800/80 text-[11px] font-mono space-y-2">
+      <div className="p-2.5 rounded-lg bg-gray-50 dark:bg-gray-950/80 border border-gray-200 dark:border-gray-800/80 text-[11px] font-mono space-y-2">
         <div className="flex justify-between items-center">
           <span className="text-gray-500 dark:text-gray-400">DRS Wing Status:</span>
           <span className={`font-bold ${drsStatus.includes('ACTIVE') ? 'text-green-500 animate-pulse' : 'text-cyan-400'}`}>
@@ -123,7 +127,7 @@ const DriverDetail = ({ driver, onOpenCompare = () => {} }) => {
 
       {/* Sector breakdown */}
       {driver.sectorTimes && (
-        <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-800">
+        <div className="pt-2 border-t border-gray-200 dark:border-gray-800">
           <span className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider block mb-1.5 font-mono">
             Sector Timing Matrix
           </span>
@@ -145,7 +149,7 @@ const DriverDetail = ({ driver, onOpenCompare = () => {} }) => {
       )}
 
       {/* Action Button: Compare */}
-      <div className="mt-4 pt-3 border-t border-gray-200 dark:border-gray-800">
+      <div className="pt-2 border-t border-gray-200 dark:border-gray-800">
         <button
           onClick={() => onOpenCompare && onOpenCompare(driver.driverId || driver.number)}
           className="w-full py-2 px-3 rounded-lg bg-red-600/10 hover:bg-red-600/20 text-red-600 dark:text-red-400 border border-red-600/30 text-xs font-mono font-bold flex items-center justify-center gap-2 transition-all active:scale-95 shadow-sm"

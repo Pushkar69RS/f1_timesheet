@@ -9,6 +9,11 @@ import FinalPositions from '../components/FinalPositions';
 import WeatherWidget from '../components/WeatherWidget';
 import RaceControlFeed from '../components/RaceControlFeed';
 import TelemetryCompareModal from '../components/TelemetryCompareModal';
+import BroadcastAlerts from '../components/BroadcastAlerts';
+import ReactionGameModal from '../components/ReactionGameModal';
+import RadioSoundboardModal from '../components/RadioSoundboardModal';
+import { useF1EasterEggs } from '../hooks/useF1EasterEggs';
+import { soundFX } from '../utils/soundFx';
 
 const isHttps = typeof window !== 'undefined' && window.location.protocol === 'https:';
 const wsProtocol = isHttps ? 'wss:' : 'ws:';
@@ -61,10 +66,14 @@ function Dashboard() {
   const [totalDurationMs, setTotalDurationMs] = useState(5400000);
   const [selectedDriverId, setSelectedDriverId] = useState(null);
   const [darkMode, setDarkMode] = useState(true);
+  const [isMuted, setIsMuted] = useState(soundFX.isMuted);
   const [globalBestLap, setGlobalBestLap] = useState(null);
   const [globalBestSectors, setGlobalBestSectors] = useState([null, null, null]);
   const [isLoadingSession, setIsLoadingSession] = useState(false);
   const [isCompareOpen, setIsCompareOpen] = useState(false);
+  const [isReactionGameOpen, setIsReactionGameOpen] = useState(false);
+  const [isRadioOpen, setIsRadioOpen] = useState(false);
+  const [isStormMode, setIsStormMode] = useState(false);
 
   const ws = useRef(null);
   const reconnectTimeout = useRef(null);
@@ -72,6 +81,12 @@ function Dashboard() {
   const driverBestSectors = useRef({});
 
   const [searchParams] = useSearchParams();
+
+  // F1 Easter Eggs hook (Konami Code, Hammertime, Smooth Operator, Simply Lovely)
+  const { safetyCarActive, easterEggMessage } = useF1EasterEggs({
+    onOpenReactionGame: () => setIsReactionGameOpen(true),
+    onOpenRadioSoundboard: () => setIsRadioOpen(true),
+  });
 
   const fetchSessionInfo = useCallback(() => {
     fetch(`${API_BASE_URL}/session-info`)
@@ -107,6 +122,9 @@ function Dashboard() {
   useEffect(() => {
     const compareParam = searchParams.get('compare');
     if (compareParam === 'true') setIsCompareOpen(true);
+
+    const reactionParam = searchParams.get('reaction');
+    if (reactionParam === 'true') setIsReactionGameOpen(true);
 
     const driverParam = searchParams.get('driver');
     if (driverParam) setSelectedDriverId(driverParam);
@@ -148,6 +166,11 @@ function Dashboard() {
 
   const toggleDarkMode = () => {
     setDarkMode(prevMode => !prevMode);
+  };
+
+  const toggleMute = () => {
+    const nextMute = soundFX.toggleMute();
+    setIsMuted(nextMute);
   };
 
   const connectWebSocket = useCallback(() => {
@@ -213,6 +236,7 @@ function Dashboard() {
         case 'replay_finished': {
           setIsPaused(true);
           setProgress(100);
+          soundFX.playVictoryFanfare();
           break;
         }
         default:
@@ -293,7 +317,20 @@ function Dashboard() {
   const currentSessionConfig = SESSIONS_2025.find(s => s.key === selectedSessionKey) || SESSIONS_2025[11];
 
   return (
-    <div className="min-h-screen flex flex-col p-4 md:p-6 bg-gray-100 dark:bg-[#07090E] text-gray-900 dark:text-white transition-colors duration-300 font-sans">
+    <div className="min-h-screen flex flex-col p-4 md:p-6 bg-gray-100 dark:bg-[#07090E] text-gray-900 dark:text-white transition-colors duration-300 font-sans relative">
+      {/* Live Overtake Broadcast Lower-Third Alerts */}
+      <BroadcastAlerts drivers={drivers} activeLap={currentLap} />
+
+      {/* Dynamic Easter Egg Banner Notification */}
+      {easterEggMessage && (
+        <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 animate-bounce">
+          <div className="p-3 px-6 bg-amber-500 text-black font-black font-mono text-xs rounded-xl shadow-2xl border-2 border-amber-300 flex items-center gap-2">
+            <span>⚡</span>
+            <span>{easterEggMessage}</span>
+          </div>
+        </div>
+      )}
+
       {/* Top Navigation Bar */}
       <header className="flex flex-wrap justify-between items-center gap-4 mb-6 pb-4 border-b border-gray-200 dark:border-gray-800">
         <div className="flex items-center space-x-4">
@@ -314,17 +351,17 @@ function Dashboard() {
         </div>
 
         {/* Action Controls Header */}
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2.5">
           {/* Sprint Weekend Indicator */}
           {currentSessionConfig.isSprint && (
-            <span className="px-2.5 py-1 rounded-md bg-amber-500/20 text-amber-500 dark:text-amber-400 font-black text-[10px] uppercase tracking-wider border border-amber-500/30 flex items-center gap-1">
-              <span>⚡</span> SPRINT WEEKEND
+            <span className="px-2.5 py-1 rounded-md bg-amber-500/20 text-amber-500 dark:text-amber-400 font-black text-[10px] uppercase tracking-wider border border-amber-500/30 flex items-center gap-1 font-mono">
+              <span>⚡</span> SPRINT
             </span>
           )}
 
           {/* 2025 Grand Prix Selector */}
-          <div className="flex items-center gap-2 bg-white dark:bg-gray-900 px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-800 shadow-sm">
-            <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">Grand Prix:</span>
+          <div className="flex items-center gap-2 bg-white dark:bg-gray-900 px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-800 shadow-sm font-mono">
+            <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">GP:</span>
             <select
               value={selectedSessionKey}
               onChange={handleSessionChange}
@@ -339,28 +376,59 @@ function Dashboard() {
             </select>
           </div>
 
+          {/* 🚦 F1 5-Red-Lights Reaction Time Game Button */}
+          <button
+            onClick={() => setIsReactionGameOpen(true)}
+            className="px-3 py-1.5 rounded-lg bg-gray-900 hover:bg-gray-800 text-amber-400 border border-amber-500/30 font-bold text-xs flex items-center gap-1.5 shadow-sm transition-all active:scale-95 font-mono"
+            title="Test Reaction Time (Shift + L)"
+          >
+            <span>🚦</span> Reaction Test
+          </button>
+
+          {/* 📻 Team Radio Soundboard Button */}
+          <button
+            onClick={() => setIsRadioOpen(true)}
+            className="px-3 py-1.5 rounded-lg bg-gray-900 hover:bg-gray-800 text-white border border-gray-700 font-bold text-xs flex items-center gap-1.5 shadow-sm transition-all active:scale-95 font-mono"
+            title="Team Radio Comms (Shift + R)"
+          >
+            <span>📻</span> Radio Deck
+          </button>
+
           {/* Head-to-Head Compare Modal Trigger */}
           <button
             onClick={() => setIsCompareOpen(true)}
-            className="px-3.5 py-1.5 rounded-lg bg-red-600 hover:bg-red-700 text-white font-bold text-xs flex items-center gap-1.5 shadow-sm transition-all active:scale-95"
+            className="px-3.5 py-1.5 rounded-lg bg-red-600 hover:bg-red-700 text-white font-bold text-xs flex items-center gap-1.5 shadow-sm transition-all active:scale-95 font-mono"
           >
-            <span>⚔️</span> Compare Drivers
+            <span>⚔️</span> Compare
+          </button>
+
+          {/* Sound FX Mute Toggle */}
+          <button
+            onClick={toggleMute}
+            className="p-2 px-2.5 rounded-lg bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 text-xs font-bold transition-colors border border-gray-200 dark:border-gray-800 shadow-sm"
+            title={isMuted ? 'Unmute F1 audio effects' : 'Mute F1 audio effects'}
+          >
+            {isMuted ? '🔇' : '🔊'}
           </button>
 
           {/* Dark / Light Mode Toggle */}
           <button
             onClick={toggleDarkMode}
-            className="p-2 px-3 rounded-lg bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 text-xs font-bold transition-colors border border-gray-200 dark:border-gray-800 shadow-sm"
+            className="p-2 px-3 rounded-lg bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 text-xs font-bold transition-colors border border-gray-200 dark:border-gray-800 shadow-sm font-mono"
             title="Toggle theme"
           >
-            {darkMode ? '☀️ Light' : '🌙 Dark'}
+            {darkMode ? '☀️' : '🌙'}
           </button>
         </div>
       </header>
 
       {/* Top Banner: Weather & Track Status */}
       <div className="mb-6">
-        <WeatherWidget weather={sessionInfo?.weather} circuitName={sessionInfo?.circuit_short_name} />
+        <WeatherWidget
+          weather={sessionInfo?.weather}
+          isStormMode={isStormMode}
+          onToggleStorm={(val) => setIsStormMode(val)}
+        />
       </div>
 
       {/* Main Grid: Left Timesheet (60%), Right Track Map & Telemetry (40%) */}
@@ -381,11 +449,12 @@ function Dashboard() {
 
         {/* Right Column: Track Map, Playback Controls, Driver Telemetry, Race Control */}
         <div className="xl:col-span-5 flex flex-col space-y-6">
-          {/* Live 2D Track Map */}
+          {/* Live 2D Track Map with 60 FPS Particle Trails & Safety Car */}
           <TrackMap
             drivers={drivers}
             sessionInfo={sessionInfo}
             selectedDriverId={selectedDriverId}
+            safetyCarActive={safetyCarActive}
             onDriverSelect={handleDriverSelect}
           />
 
@@ -417,7 +486,7 @@ function Dashboard() {
             isPaused={isPaused}
           />
 
-          {/* Selected Driver Telemetry Card */}
+          {/* Selected Driver Telemetry Card with F1 Steering Wheel */}
           <DriverDetail
             driver={selectedDriver}
             onOpenCompare={() => setIsCompareOpen(true)}
@@ -432,9 +501,25 @@ function Dashboard() {
         drivers={drivers}
       />
 
+      {/* 5-Red-Lights Reaction Time Game Modal */}
+      <ReactionGameModal
+        isOpen={isReactionGameOpen}
+        onClose={() => setIsReactionGameOpen(false)}
+      />
+
+      {/* Team Radio Soundboard Modal */}
+      <RadioSoundboardModal
+        isOpen={isRadioOpen}
+        onClose={() => setIsRadioOpen(false)}
+      />
+
       {/* Footer */}
       <footer className="mt-10 pt-4 border-t border-gray-200 dark:border-gray-800 text-center text-gray-500 text-xs flex flex-wrap justify-between items-center gap-2 font-mono">
-        <span>PaceTracer Telemetry &copy; 2025 | FIA Formula 1 World Championship</span>
+        <div className="flex items-center gap-3">
+          <span>PaceTracer Telemetry &copy; 2025</span>
+          <span className="text-gray-400">|</span>
+          <span className="text-gray-400">💡 Shortcuts: <b>Shift+L</b> (Reaction Test) • <b>Shift+R</b> (Radio) • <b>Shift+H</b> (Hammertime)</span>
+        </div>
         <span>24-Round Live Replay & Precision Telemetry Platform</span>
       </footer>
     </div>

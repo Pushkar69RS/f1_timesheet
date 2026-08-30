@@ -32,6 +32,7 @@ export default function TrackMap({
   sessionInfo = null,
   drivers = {},
   selectedDriverId = null,
+  safetyCarActive = false,
   onDriverSelect = () => {}
 }) {
   const canvasRef = useRef(null);
@@ -41,8 +42,10 @@ export default function TrackMap({
   const [showDrs, setShowDrs] = useState(true);
   const [showSectors, setShowSectors] = useState(true);
   const [showKerbs, setShowKerbs] = useState(true);
+  const [showTrails, setShowTrails] = useState(true);
   const animFrameRef = useRef(null);
   const driverRenderPosRef = useRef({});
+  const driverTrailsRef = useRef({});
 
   const circuitNameKey = sessionInfo?.circuit_short_name || sessionInfo?.name || 'Silverstone';
   const circuit = getCircuit(circuitNameKey);
@@ -185,12 +188,11 @@ export default function TrackMap({
 
       // Draw Sector Split Transponder Gates
       sectorColors.forEach((sec, idx) => {
-        if (idx === 0) return; // Skip start/finish
+        if (idx === 0) return;
         const splitPt = getSplinePoint(circuitPath, sec.startPct);
         const sx = toCanvasX(splitPt.x);
         const sy = toCanvasY(splitPt.y);
 
-        // Transponder Split Gate Line
         ctx.save();
         ctx.beginPath();
         ctx.arc(sx, sy, 4, 0, Math.PI * 2);
@@ -200,7 +202,6 @@ export default function TrackMap({
         ctx.fill();
         ctx.restore();
 
-        // Split Gate Text Badge
         ctx.save();
         ctx.fillStyle = isDark ? 'rgba(15, 23, 42, 0.9)' : 'rgba(255, 255, 255, 0.95)';
         ctx.strokeStyle = sec.color;
@@ -242,7 +243,6 @@ export default function TrackMap({
             else ctx.lineTo(cx, cy);
           }
         } else {
-          // Wraps around finish line
           for (let i = sIdx; i < dense.length; i++) {
             const pt = dense[i];
             const cx = toCanvasX(pt.x);
@@ -259,7 +259,6 @@ export default function TrackMap({
         }
         ctx.stroke();
 
-        // Draw DRS Zone Text Badge at midpoint
         const midPct = sIdx <= eIdx ? (drs.startPct + drs.endPct) / 2 : ((drs.startPct + drs.endPct + 1) / 2) % 1;
         const midPt = getSplinePoint(circuitPath, midPct);
         const mx = toCanvasX(midPt.x);
@@ -278,18 +277,6 @@ export default function TrackMap({
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillText('DRS', mx, my - 9.5);
-
-        // Draw Detection Loop marker if provided
-        if (drs.detectionPct !== undefined) {
-          const detPt = getSplinePoint(circuitPath, drs.detectionPct);
-          const dx = toCanvasX(detPt.x);
-          const dy = toCanvasY(detPt.y);
-
-          ctx.beginPath();
-          ctx.arc(dx, dy, 3, 0, Math.PI * 2);
-          ctx.fillStyle = '#00FF66';
-          ctx.fill();
-        }
         ctx.restore();
       });
     }
@@ -301,7 +288,6 @@ export default function TrackMap({
       const sY = toCanvasY(startPt.y);
 
       ctx.save();
-      // Checkered Start/Finish Marker
       ctx.fillStyle = isDark ? '#FFFFFF' : '#0F172A';
       ctx.strokeStyle = '#E10600';
       ctx.lineWidth = 2;
@@ -310,7 +296,6 @@ export default function TrackMap({
       ctx.fill();
       ctx.stroke();
 
-      // Checkered Flag Icon Badge
       ctx.fillStyle = isDark ? 'rgba(15, 23, 42, 0.9)' : 'rgba(255, 255, 255, 0.95)';
       ctx.strokeStyle = '#E10600';
       ctx.lineWidth = 1.5;
@@ -327,7 +312,7 @@ export default function TrackMap({
       ctx.restore();
     }
 
-    // 7. Draw Turn / Corner Names (High-Contrast F1 Broadcast Badges)
+    // 7. Draw Turn / Corner Names
     if (showCorners && circuit?.cornerLabels && circuit.cornerLabels.length > 0) {
       circuit.cornerLabels.forEach(corner => {
         const pt = getSplinePoint(circuitPath, corner.pct);
@@ -335,13 +320,11 @@ export default function TrackMap({
         const cy = toCanvasY(pt.y);
 
         ctx.save();
-        // Dot at apex
         ctx.beginPath();
         ctx.arc(cx, cy, 2.5, 0, Math.PI * 2);
         ctx.fillStyle = isDark ? '#94A3B8' : '#475569';
         ctx.fill();
 
-        // Corner Pill Label
         ctx.font = 'bold 8px sans-serif';
         const textWidth = ctx.measureText(corner.name).width;
         const badgeWidth = textWidth + 10;
@@ -363,8 +346,54 @@ export default function TrackMap({
       });
     }
 
-    // 8. Draw Driver Markers (20 Drivers with Team Colors & P1-P5 Badges)
+    // 8. Draw Safety Car if active
     const driverList = Object.values(drivers);
+    if (safetyCarActive && driverList.length > 0) {
+      const leader = driverList.find(d => d.position === 1) || driverList[0];
+      const scProgress = ((leader.trackProgress || 0) + 0.035) % 1;
+      const scPos = getSplinePoint(circuitPath, scProgress);
+      const scX = toCanvasX(scPos.x);
+      const scY = toCanvasY(scPos.y);
+
+      ctx.save();
+      // Flashing Amber Beacon Halo
+      const strobeTime = Date.now() / 150;
+      const isAmberStrobe = Math.floor(strobeTime) % 2 === 0;
+
+      ctx.beginPath();
+      ctx.arc(scX, scY, 18, 0, Math.PI * 2);
+      ctx.fillStyle = isAmberStrobe ? 'rgba(245, 158, 11, 0.35)' : 'rgba(245, 158, 11, 0.1)';
+      ctx.fill();
+
+      // Aston Martin Racing Green Safety Car Body
+      ctx.beginPath();
+      ctx.arc(scX, scY, 11, 0, Math.PI * 2);
+      ctx.fillStyle = '#00594C';
+      ctx.shadowColor = '#F59E0B';
+      ctx.shadowBlur = 10;
+      ctx.fill();
+      ctx.strokeStyle = isAmberStrobe ? '#F59E0B' : '#FFFFFF';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      // SC Label
+      ctx.fillStyle = '#F59E0B';
+      ctx.font = 'bold 8px monospace';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('SC', scX, scY);
+
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.9)';
+      ctx.beginPath();
+      ctx.roundRect(scX - 30, scY - 22, 60, 12, 3);
+      ctx.fill();
+      ctx.fillStyle = '#F59E0B';
+      ctx.font = 'bold 7px sans-serif';
+      ctx.fillText('SAFETY CAR', scX, scY - 16);
+      ctx.restore();
+    }
+
+    // 9. Draw Particle Speed Trails & Driver Dots
     driverList.forEach((driver) => {
       const driverId = String(driver.driverId || driver.number);
       const targetPos = getSplinePoint(circuitPath, driver.trackProgress || 0);
@@ -382,9 +411,58 @@ export default function TrackMap({
       const cx = cur.x;
       const cy = cur.y;
 
-      const isSelected = String(selectedDriverId) === driverId;
       const teamColor = driver.team_colour ? `#${driver.team_colour}` : getTeamColor(driver.team);
+      const isSelected = String(selectedDriverId) === driverId;
       const radius = isSelected ? 12 : 9;
+
+      // Maintain 60 FPS Particle Trail Buffer
+      if (!driverTrailsRef.current[driverId]) {
+        driverTrailsRef.current[driverId] = [];
+      }
+      const trail = driverTrailsRef.current[driverId];
+      trail.push({ x: cx, y: cy });
+      if (trail.length > 7) trail.shift();
+
+      // Render Speed Particle Streak
+      if (showTrails && trail.length > 1) {
+        ctx.save();
+        ctx.beginPath();
+        trail.forEach((tPt, tIdx) => {
+          if (tIdx === 0) ctx.moveTo(tPt.x, tPt.y);
+          else ctx.lineTo(tPt.x, tPt.y);
+        });
+        ctx.strokeStyle = teamColor;
+        ctx.lineWidth = isSelected ? 4 : 2.5;
+        ctx.lineCap = 'round';
+        ctx.globalAlpha = 0.45;
+        ctx.shadowColor = teamColor;
+        ctx.shadowBlur = 8;
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      // Check if driver is inside a DRS zone
+      let inDrsZone = false;
+      if (circuit?.drsZonesList) {
+        const p = driver.trackProgress || 0;
+        inDrsZone = circuit.drsZonesList.some(z => {
+          if (z.startPct <= z.endPct) return p >= z.startPct && p <= z.endPct;
+          return p >= z.startPct || p <= z.endPct;
+        });
+      }
+
+      // DRS Active Wing Pulsing Halo
+      if (inDrsZone) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(cx, cy, radius + 4, 0, Math.PI * 2);
+        ctx.strokeStyle = '#00FF66';
+        ctx.lineWidth = 1.5;
+        ctx.shadowColor = '#00FF66';
+        ctx.shadowBlur = 8;
+        ctx.stroke();
+        ctx.restore();
+      }
 
       // Outer Selection Aura
       if (isSelected) {
@@ -431,7 +509,7 @@ export default function TrackMap({
     });
 
     animFrameRef.current = requestAnimationFrame(renderCanvas);
-  }, [circuitPath, circuit, drivers, selectedDriverId, showCorners, showDrs, showSectors, showKerbs]);
+  }, [circuitPath, circuit, drivers, selectedDriverId, showCorners, showDrs, showSectors, showKerbs, showTrails, safetyCarActive]);
 
   useEffect(() => {
     animFrameRef.current = requestAnimationFrame(renderCanvas);
@@ -471,6 +549,17 @@ export default function TrackMap({
 
   return (
     <div className="relative bg-white dark:bg-[#111622] rounded-2xl shadow-2xl overflow-hidden border border-gray-200 dark:border-gray-800 flex flex-col font-sans transition-colors">
+      {/* Safety Car Banner Overlay if Active */}
+      {safetyCarActive && (
+        <div className="p-2 bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600 text-black font-mono font-black text-xs text-center uppercase tracking-widest flex items-center justify-center gap-3 animate-pulse border-b border-amber-400">
+          <span>🚨 SAFETY CAR DEPLOYED</span>
+          <span>•</span>
+          <span>DELTA PACE ACTIVE</span>
+          <span>•</span>
+          <span>NO OVERTAKING</span>
+        </div>
+      )}
+
       {/* Header Bar */}
       <div className="p-3.5 px-5 bg-gray-50 dark:bg-[#0B0E14] border-b border-gray-200 dark:border-gray-800 flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2.5">
@@ -487,6 +576,18 @@ export default function TrackMap({
 
         {/* Interactive Layer Toggles */}
         <div className="flex items-center gap-1.5 font-mono text-[10px]">
+          <button
+            onClick={() => setShowTrails(prev => !prev)}
+            className={`px-2.5 py-1 rounded-md border font-bold transition-all ${
+              showTrails
+                ? 'bg-amber-600/15 border-amber-500 text-amber-500 dark:text-amber-400'
+                : 'bg-gray-100 dark:bg-gray-900 border-gray-300 dark:border-gray-700 text-gray-400 opacity-60'
+            }`}
+            title="Toggle Speed Particle Trails"
+          >
+            ✨ Trails
+          </button>
+
           <button
             onClick={() => setShowCorners(prev => !prev)}
             className={`px-2.5 py-1 rounded-md border font-bold transition-all ${
