@@ -17,6 +17,8 @@ const TEAM_COLORS = {
   'Haas F1 Team': '#B6BABD',
   'Sauber': '#52E252',
   'Kick Sauber': '#52E252',
+  'Stake Sauber': '#52E252',
+  'Stake F1 Team': '#52E252',
 };
 
 const TYRE_STYLES = {

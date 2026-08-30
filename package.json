@@ -1,7 +1,7 @@
 {
   "name": "pacetracer-f1-telemetry",
   "version": "1.0.0",
-  "description": "2026 Formula 1 Telemetry & Circuit Replay Platform",
+  "description": "2025 Formula 1 Telemetry & Circuit Replay Platform",
   "scripts": {
     "build": "cd frontend && npm install && npm run build && cd ../backend && npm install",
     "start": "node backend/src/server.js",

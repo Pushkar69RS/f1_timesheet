@@ -1,6 +1,6 @@
-# PaceTracer 🏎️ — 2026 Formula 1 Telemetry & Circuit Replay Platform
+# PaceTracer 🏎️ — 2025 Formula 1 Telemetry & Circuit Replay Platform
 
-[![CI Pipeline](https://github.com/scipr/pacetracer/actions/workflows/ci.yml/badge.svg)](https://github.com/scipr/pacetracer/actions)
+[![CI Pipeline](https://github.com/Pushkar69RS/f1_timesheet/actions/workflows/ci.yml/badge.svg)](https://github.com/Pushkar69RS/f1_timesheet/actions)
 [![Node.js](https://img.shields.io/badge/Node.js-v18%2B-green.svg)](https://nodejs.org/)
 [![React](https://img.shields.io/badge/React-18-blue.svg)](https://reactjs.org/)
 [![Vite](https://img.shields.io/badge/Vite-5-purple.svg)](https://vitejs.dev/)
@@ -8,13 +8,13 @@
 [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED.svg)](https://www.docker.com/)
 [![License: ISC](https://img.shields.io/badge/License-ISC-yellow.svg)](https://opensource.org/licenses/ISC)
 
-> **PaceTracer** is a full-stack, broadcast-grade Formula 1 Telemetry & Race Replay platform simulating the **2026 FIA Formula 1 World Championship** regulation era. Built with **Node.js, Express, WebSockets, HTML5 Canvas, React 18, and Tailwind CSS**, it delivers 60 FPS track telemetry, authentic FIA circuit sector timing, live race control incident feeds, head-to-head driver telemetry comparisons, and instant Grand Prix switching across all 24 rounds of the 2026 calendar.
+> **PaceTracer** is a full-stack, broadcast-grade Formula 1 Telemetry & Race Replay platform capturing the **2025 FIA Formula 1 World Championship**. Built with **Node.js, Express, WebSockets, HTML5 Canvas, React 18, and Tailwind CSS**, it delivers 60 FPS track telemetry, authentic FIA circuit sector timing, live race control incident feeds, head-to-head driver telemetry comparisons, and instant Grand Prix simulation switching across all 24 rounds of the 2025 calendar.
 
 ---
 
 ## 📸 Feature Showcase Gallery
 
-| **1. 2026 Telemetry Dashboard (Bahrain GP - Dark)** | **2. Broadcast Light Theme (Monaco GP)** |
+| **1. 2025 Telemetry Dashboard (Bahrain GP - Dark)** | **2. Broadcast Light Theme (Monaco GP)** |
 | :---: | :---: |
 | ![Bahrain GP Dark Mode](screenshots/03_dashboard_dark_bahrain.png) | ![Monaco GP Light Mode](screenshots/04_dashboard_light_monaco.png) |
 
@@ -22,9 +22,9 @@
 | :---: | :---: |
 | ![Comparison Modal](screenshots/05_head_to_head_comparison.png) | ![Driver Telemetry Card](screenshots/06_driver_hybrid_telemetry.png) |
 
-| **5. 2026 Engine & Aero Regulation Showcase** | **6. Interactive 24-Round Calendar Grid** |
+| **5. 2025 Technical Specifications Showcase** | **6. Interactive 24-Round Calendar Grid** |
 | :---: | :---: |
-| ![Landing Page Hero](screenshots/01_landing_hero_regulations.png) | ![2026 Calendar Grid](screenshots/02_calendar_and_constructors.png) |
+| ![Landing Page Hero](screenshots/01_landing_hero_regulations.png) | ![2025 Calendar Grid](screenshots/02_calendar_and_constructors.png) |
 
 | **7. Official Race Classification & FIA Points** | **8. Suzuka Figure-8 Circuit Replay** |
 | :---: | :---: |
@@ -47,17 +47,32 @@
 
 ### ⚔️ Head-to-Head Driver Telemetry Comparison
 - Side-by-side comparison modal for any 2 drivers on the grid:
+  - **1-Click Rivalry Presets**: *Hamilton vs Leclerc*, *Verstappen vs Norris*, *Russell vs Antonelli*, *Hülkenberg vs Bortoleto*.
   - **Pace Delta Analysis**: Real-time fastest lap delta indicator.
-  - **Sector Delta Matrix**: Side-by-side S1, S2, S3 breakdown.
-  - **Stint & Tyre Strategy**: Compound comparison, tyre wear, and pit stop counts.
+  - **Sector Delta Matrix**: Side-by-side S1, S2, S3 breakdown with green pace badges.
+  - **2025 Power Units**: 120kW MGU-K Hybrid State of Charge (SoC %) and DRS wing states.
 
 ### 📻 Race Control Live Incident Feed & Weather Widget
 - **Dynamic Incident Feed**: Real-time ticker logging fastest laps (🟣), pit stops (🟠), VSC/Safety Cars (🟡), and lead changes (👑).
 - **Live Circuit Weather Radar**: Ambient and track temperature, rain risk %, wind speed, and weather condition badges.
 
-### 🏎️ 2026 Grid & Official Driver Headshots
+### 🏎️ 2025 Grid & Official Driver Headshots
 - Official Formula 1 media CDN portrait headshots for all 20 drivers.
-- Complete 2026 constructor lineup including the **Audi F1 Team** (Hülkenberg & Bortoleto), **Scuderia Ferrari** (Hamilton & Leclerc), and **Williams** (Sainz & Albon).
+- Complete 2025 constructor lineup:
+  - **Scuderia Ferrari**: Lewis Hamilton #44 & Charles Leclerc #16
+  - **McLaren**: Lando Norris #4 & Oscar Piastri #81
+  - **Red Bull Racing**: Max Verstappen #1 & Liam Lawson #30
+  - **Mercedes**: George Russell #63 & Kimi Antonelli #12
+  - **Aston Martin**: Fernando Alonso #14 & Lance Stroll #18
+  - **Williams**: Carlos Sainz #55 & Alexander Albon #23
+  - **Stake F1 Team Kick Sauber**: Nico Hülkenberg #27 & Gabriel Bortoleto #5 (`#52E252` neon green)
+  - **Alpine**: Pierre Gasly #10 & Jack Doohan #7
+  - **Haas**: Esteban Ocon #31 & Oliver Bearman #87
+  - **Visa Cash App RB**: Yuki Tsunoda #22 & Isack Hadjar #6
+
+### 🏁 Official Race Classification & Championship Points
+- Complete 20-driver race classification table awarding official FIA points (+25, +18, +15, +12, +10, +8, +6, +4, +2, +1).
+- **Constructors Championship Standings Tab**: Live round total points computed dynamically from combined team results.
 
 ### 🌓 Full Light & Dark Theme Switcher
 - **Cyber F1 Dark Mode**: High-contrast neon radar styling (`#07090E`, `#111622`).
@@ -91,12 +106,12 @@
 │  ┌───────────────────────────────┴────────────────────────────┐  │
 │  │                      ReplayEngine.js                       │  │
 │  │  - Event queue processing & timeline interpolation         │  │
-│  │  - State snapshot manager & 2026 Grand Prix generator      │  │
+│  │  - State snapshot manager & 2025 Grand Prix generator      │  │
 │  └───────────▲────────────────────────────────────▲───────────┘  │
 │              │                                    │              │
 │  ┌───────────┴───────────┐             ┌──────────┴───────────┐  │
-│  │      season2026.js    │             │    circuitData.js    │  │
-│  │ (24-Round 2026 Data)  │             │ (FIA Track Geometry) │  │
+│  │      season2025.js    │             │    circuitData.js    │  │
+│  │ (24-Round 2025 Data)  │             │ (FIA Track Geometry) │  │
 │  └───────────────────────┘             └──────────────────────┘  │
 └──────────────────────────────────────────────────────────────────┘
 ```
@@ -113,8 +128,8 @@
 
 1. **Clone the repository**:
    ```bash
-   git clone https://github.com/your-username/pacetracer.git
-   cd pacetracer
+   git clone https://github.com/Pushkar69RS/f1_timesheet.git
+   cd f1_timesheet
    ```
 
 2. **Install dependencies**:
@@ -143,21 +158,6 @@
 
 ---
 
-## 🧪 Testing & Verification
-
-```bash
-# Backend test suite (11 unit tests)
-cd backend
-npm test
-
-# Frontend ESLint & production build
-cd ../frontend
-npm run lint
-npm run build
-```
-
----
-
 ## 🌐 Free Cloud Hosting & Deployment
 
 ### Option 1: 1-Click Deploy on Render.com (Recommended — Fullstack + WebSockets)
@@ -170,7 +170,6 @@ npm run build
    - **Start Command**: `npm start`
    - **Plan**: `Free`
 5. Click **Create Web Service**.
-6. Render automatically builds the frontend bundle, starts the Node WebSocket server, and provides a live HTTPS URL (e.g. `https://f1-timesheet.onrender.com`)!
 
 ---
 
@@ -181,19 +180,18 @@ npm run build
 
 ---
 
-### Option 3: Split Deployment (Vercel Frontend + Render Backend)
-- **Backend (Render)**:
-  - Root directory: `backend`
-  - Build command: `npm install`
-  - Start command: `node src/server.js`
-  - Get your live backend URL: `https://your-backend.onrender.com`
-- **Frontend (Vercel)**:
-  - Import repo on **[Vercel](https://vercel.com)**
-  - Root directory: `frontend`
-  - Add Environment Variables:
-    - `VITE_API_URL`: `https://your-backend.onrender.com/api`
-    - `VITE_WS_URL`: `wss://your-backend.onrender.com/ws`
-  - Deploy!
+## 🧪 Testing & Verification
+
+```bash
+# Backend test suite (11 unit tests)
+cd backend
+npm test
+
+# Frontend ESLint & production build
+cd ../frontend
+npm run lint
+npm run build
+```
 
 ---
 
@@ -210,5 +208,4 @@ docker-compose up --build
 ---
 
 ## 📄 License
-ISC License &copy; 2026 PaceTracer.
-
+ISC License &copy; 2025 PaceTracer.

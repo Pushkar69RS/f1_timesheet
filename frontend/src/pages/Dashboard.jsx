@@ -21,38 +21,38 @@ const defaultApiHost = (typeof window !== 'undefined' && window.location.port ==
 const API_BASE_URL = import.meta.env.VITE_API_URL || `${httpProtocol}//${defaultApiHost}/api`;
 const WS_URL = import.meta.env.VITE_WS_URL || `${wsProtocol}//${defaultApiHost}/ws`;
 
-const SESSIONS_2026 = [
-  { key: '2026-01', name: 'R1: Australian GP', circuit: 'Melbourne', flag: '🇦🇺' },
-  { key: '2026-02', name: 'R2: Chinese GP', circuit: 'Shanghai', flag: '🇨🇳' },
-  { key: '2026-03', name: 'R3: Japanese GP', circuit: 'Suzuka', flag: '🇯🇵' },
-  { key: '2026-04', name: 'R4: Bahrain GP', circuit: 'Sakhir', flag: '🇧🇭' },
-  { key: '2026-05', name: 'R5: Saudi Arabian GP', circuit: 'Jeddah', flag: '🇸🇦' },
-  { key: '2026-06', name: 'R6: Miami GP', circuit: 'Miami', flag: '🇺🇸' },
-  { key: '2026-07', name: 'R7: Emilia Romagna GP', circuit: 'Imola', flag: '🇮🇹' },
-  { key: '2026-08', name: 'R8: Monaco GP', circuit: 'Monaco', flag: '🇲🇨' },
-  { key: '2026-09', name: 'R9: Spanish GP', circuit: 'Barcelona', flag: '🇪🇸' },
-  { key: '2026-10', name: 'R10: Canadian GP', circuit: 'Montreal', flag: '🇨🇦' },
-  { key: '2026-11', name: 'R11: Austrian GP', circuit: 'Spielberg', flag: '🇦🇹' },
-  { key: '2026-12', name: 'R12: British GP', circuit: 'Silverstone', flag: '🇬🇧' },
-  { key: '2026-13', name: 'R13: Belgian GP', circuit: 'Spa', flag: '🇧🇪' },
-  { key: '2026-14', name: 'R14: Hungarian GP', circuit: 'Budapest', flag: '🇭🇺' },
-  { key: '2026-15', name: 'R15: Dutch GP', circuit: 'Zandvoort', flag: '🇳🇱' },
-  { key: '2026-16', name: 'R16: Italian GP', circuit: 'Monza', flag: '🇮🇹' },
-  { key: '2026-17', name: 'R17: Azerbaijan GP', circuit: 'Baku', flag: '🇦🇿' },
-  { key: '2026-18', name: 'R18: Singapore GP', circuit: 'Singapore', flag: '🇸🇬' },
-  { key: '2026-19', name: 'R19: United States GP', circuit: 'Austin', flag: '🇺🇸' },
-  { key: '2026-20', name: 'R20: Mexico City GP', circuit: 'Mexico City', flag: '🇲🇽' },
-  { key: '2026-21', name: 'R21: São Paulo GP', circuit: 'Interlagos', flag: '🇧🇷' },
-  { key: '2026-22', name: 'R22: Las Vegas GP', circuit: 'Las Vegas', flag: '🇺🇸' },
-  { key: '2026-23', name: 'R23: Qatar GP', circuit: 'Lusail', flag: '🇶🇦' },
-  { key: '2026-24', name: 'R24: Abu Dhabi GP', circuit: 'Yas Marina', flag: '🇦🇪' },
+const SESSIONS_2025 = [
+  { key: '2025-01', name: 'R1: Australian GP', circuit: 'Melbourne', flag: '🇦🇺', isSprint: false },
+  { key: '2025-02', name: 'R2: Chinese GP', circuit: 'Shanghai', flag: '🇨🇳', isSprint: true },
+  { key: '2025-03', name: 'R3: Japanese GP', circuit: 'Suzuka', flag: '🇯🇵', isSprint: false },
+  { key: '2025-04', name: 'R4: Bahrain GP', circuit: 'Sakhir', flag: '🇧🇭', isSprint: false },
+  { key: '2025-05', name: 'R5: Saudi Arabian GP', circuit: 'Jeddah', flag: '🇸🇦', isSprint: false },
+  { key: '2025-06', name: 'R6: Miami GP', circuit: 'Miami', flag: '🇺🇸', isSprint: true },
+  { key: '2025-07', name: 'R7: Emilia Romagna GP', circuit: 'Imola', flag: '🇮🇹', isSprint: false },
+  { key: '2025-08', name: 'R8: Monaco GP', circuit: 'Monaco', flag: '🇲🇨', isSprint: false },
+  { key: '2025-09', name: 'R9: Spanish GP', circuit: 'Barcelona', flag: '🇪🇸', isSprint: false },
+  { key: '2025-10', name: 'R10: Canadian GP', circuit: 'Montreal', flag: '🇨🇦', isSprint: false },
+  { key: '2025-11', name: 'R11: Austrian GP', circuit: 'Spielberg', flag: '🇦🇹', isSprint: false },
+  { key: '2025-12', name: 'R12: British GP', circuit: 'Silverstone', flag: '🇬🇧', isSprint: false },
+  { key: '2025-13', name: 'R13: Belgian GP', circuit: 'Spa', flag: '🇧🇪', isSprint: true },
+  { key: '2025-14', name: 'R14: Hungarian GP', circuit: 'Budapest', flag: '🇭🇺', isSprint: false },
+  { key: '2025-15', name: 'R15: Dutch GP', circuit: 'Zandvoort', flag: '🇳🇱', isSprint: false },
+  { key: '2025-16', name: 'R16: Italian GP', circuit: 'Monza', flag: '🇮🇹', isSprint: false },
+  { key: '2025-17', name: 'R17: Azerbaijan GP', circuit: 'Baku', flag: '🇦🇿', isSprint: false },
+  { key: '2025-18', name: 'R18: Singapore GP', circuit: 'Singapore', flag: '🇸🇬', isSprint: false },
+  { key: '2025-19', name: 'R19: United States GP', circuit: 'Austin', flag: '🇺🇸', isSprint: true },
+  { key: '2025-20', name: 'R20: Mexico City GP', circuit: 'Mexico City', flag: '🇲🇽', isSprint: false },
+  { key: '2025-21', name: 'R21: São Paulo GP', circuit: 'Interlagos', flag: '🇧🇷', isSprint: true },
+  { key: '2025-22', name: 'R22: Las Vegas GP', circuit: 'Las Vegas', flag: '🇺🇸', isSprint: false },
+  { key: '2025-23', name: 'R23: Qatar GP', circuit: 'Lusail', flag: '🇶🇦', isSprint: true },
+  { key: '2025-24', name: 'R24: Abu Dhabi GP', circuit: 'Yas Marina', flag: '🇦🇪', isSprint: false },
 ];
 
 function Dashboard() {
   const navigate = useNavigate();
   const [drivers, setDrivers] = useState({});
   const [sessionInfo, setSessionInfo] = useState(null);
-  const [selectedSessionKey, setSelectedSessionKey] = useState('2026-12');
+  const [selectedSessionKey, setSelectedSessionKey] = useState('2025-12');
   const [isPaused, setIsPaused] = useState(true);
   const [replaySpeed, setReplaySpeed] = useState(1);
   const [progress, setProgress] = useState(0);
@@ -73,6 +73,37 @@ function Dashboard() {
 
   const [searchParams] = useSearchParams();
 
+  const fetchSessionInfo = useCallback(() => {
+    fetch(`${API_BASE_URL}/session-info`)
+      .then(res => res.json())
+      .then(data => {
+        setSessionInfo(data);
+        if (data.session_laps) setTotalLaps(data.session_laps);
+        if (data.session_key) setSelectedSessionKey(String(data.session_key));
+      })
+      .catch(err => console.error('Failed to fetch session info:', err));
+  }, []);
+
+  const handleSessionChangeByKey = useCallback(async (newSessionKey) => {
+    if (!newSessionKey) return;
+    setSelectedSessionKey(newSessionKey);
+    setIsLoadingSession(true);
+    try {
+      const res = await fetch(`${API_BASE_URL}/load-session`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ session_key: newSessionKey }),
+      });
+      if (res.ok) {
+        fetchSessionInfo();
+      }
+    } catch (err) {
+      console.error('Failed to load session:', err);
+    } finally {
+      setIsLoadingSession(false);
+    }
+  }, [fetchSessionInfo]);
+
   useEffect(() => {
     const compareParam = searchParams.get('compare');
     if (compareParam === 'true') setIsCompareOpen(true);
@@ -82,6 +113,13 @@ function Dashboard() {
 
     const finishedParam = searchParams.get('finished');
     if (finishedParam === 'true') setProgress(100);
+
+    const sessionParam = searchParams.get('session') || searchParams.get('round');
+    if (sessionParam) {
+      const formattedKey = sessionParam.replace(/^2026-/, '2025-');
+      setSelectedSessionKey(formattedKey);
+      handleSessionChangeByKey(formattedKey);
+    }
 
     const themeParam = searchParams.get('theme');
     if (themeParam === 'light') {
@@ -96,7 +134,7 @@ function Dashboard() {
         setDarkMode(true);
       }
     }
-  }, [searchParams]);
+  }, [searchParams, handleSessionChangeByKey]);
 
   useEffect(() => {
     if (darkMode) {
@@ -195,17 +233,6 @@ function Dashboard() {
     };
   }, []);
 
-  const fetchSessionInfo = useCallback(() => {
-    fetch(`${API_BASE_URL}/session-info`)
-      .then(res => res.json())
-      .then(data => {
-        setSessionInfo(data);
-        if (data.session_laps) setTotalLaps(data.session_laps);
-        if (data.session_key) setSelectedSessionKey(String(data.session_key));
-      })
-      .catch(err => console.error('Failed to fetch session info:', err));
-  }, []);
-
   useEffect(() => {
     fetchSessionInfo();
     fetch(`${API_BASE_URL}/snapshot`)
@@ -259,25 +286,11 @@ function Dashboard() {
 
   const handleSessionChange = async (e) => {
     const newSessionKey = e.target.value;
-    setSelectedSessionKey(newSessionKey);
-    setIsLoadingSession(true);
-    try {
-      const res = await fetch(`${API_BASE_URL}/load-session`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ session_key: newSessionKey }),
-      });
-      if (res.ok) {
-        fetchSessionInfo();
-      }
-    } catch (err) {
-      console.error('Failed to load session:', err);
-    } finally {
-      setIsLoadingSession(false);
-    }
+    handleSessionChangeByKey(newSessionKey);
   };
 
   const selectedDriver = selectedDriverId ? drivers[selectedDriverId] : null;
+  const currentSessionConfig = SESSIONS_2025.find(s => s.key === selectedSessionKey) || SESSIONS_2025[11];
 
   return (
     <div className="min-h-screen flex flex-col p-4 md:p-6 bg-gray-100 dark:bg-[#07090E] text-gray-900 dark:text-white transition-colors duration-300 font-sans">
@@ -288,21 +301,28 @@ function Dashboard() {
             onClick={() => navigate('/')}
             className="px-3.5 py-1.5 bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-800 dark:text-white font-bold text-xs rounded-lg transition-colors border border-gray-200 dark:border-gray-800 flex items-center gap-1.5 shadow-sm"
           >
-            ← 2026 Calendar
+            ← 2025 Calendar
           </button>
           <div className="flex items-center gap-2">
             <span className="text-xl font-black tracking-wider text-gray-900 dark:text-white">
               <span className="text-[#E10600]">PACE</span>TRACER
             </span>
             <span className="px-2 py-0.5 rounded bg-red-600/10 dark:bg-red-600/20 text-[#E10600] font-black text-[10px] uppercase tracking-widest border border-red-600/30">
-              2026 FIA PRO TELEMETRY
+              2025 FIA PRO TELEMETRY
             </span>
           </div>
         </div>
 
         {/* Action Controls Header */}
         <div className="flex flex-wrap items-center gap-3">
-          {/* 2026 Grand Prix Selector */}
+          {/* Sprint Weekend Indicator */}
+          {currentSessionConfig.isSprint && (
+            <span className="px-2.5 py-1 rounded-md bg-amber-500/20 text-amber-500 dark:text-amber-400 font-black text-[10px] uppercase tracking-wider border border-amber-500/30 flex items-center gap-1">
+              <span>⚡</span> SPRINT WEEKEND
+            </span>
+          )}
+
+          {/* 2025 Grand Prix Selector */}
           <div className="flex items-center gap-2 bg-white dark:bg-gray-900 px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-800 shadow-sm">
             <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">Grand Prix:</span>
             <select
@@ -311,9 +331,9 @@ function Dashboard() {
               disabled={isLoadingSession}
               className="bg-transparent text-xs font-bold text-gray-900 dark:text-white focus:outline-none cursor-pointer"
             >
-              {SESSIONS_2026.map(s => (
+              {SESSIONS_2025.map(s => (
                 <option key={s.key} value={s.key} className="bg-white dark:bg-gray-900 text-gray-900 dark:text-white">
-                  {s.flag} {s.name} ({s.circuit})
+                  {s.flag} {s.name} ({s.circuit}) {s.isSprint ? '⚡' : ''}
                 </option>
               ))}
             </select>
@@ -369,22 +389,22 @@ function Dashboard() {
             onDriverSelect={handleDriverSelect}
           />
 
-          {/* Replay Controls & Scrubber */}
+          {/* Playback Controls & Multiplier */}
           <Controls
             isPaused={isPaused}
             replaySpeed={replaySpeed}
-            progress={progress}
             currentLap={currentLap}
             totalLaps={totalLaps}
+            progress={progress}
             onPlayPause={handlePlayPause}
             onSpeedChange={handleSpeedChange}
-            onSeek={handleSeek}
             onRestart={handleRestart}
           />
 
-          <ProgressBar progress={progress} currentLap={currentLap} totalLaps={totalLaps} />
+          {/* Progress Timeline Scrubber */}
+          <ProgressBar progress={progress} onSeek={handleSeek} currentLap={currentLap} totalLaps={totalLaps} />
 
-          {/* Live Race Control Feed */}
+          {/* Race Control Live Incident & Overtake Feed */}
           <RaceControlFeed
             drivers={drivers}
             currentLap={currentLap}
@@ -410,7 +430,7 @@ function Dashboard() {
 
       {/* Footer */}
       <footer className="mt-10 pt-4 border-t border-gray-200 dark:border-gray-800 text-center text-gray-500 text-xs flex flex-wrap justify-between items-center gap-2 font-mono">
-        <span>PaceTracer Telemetry &copy; 2026 | FIA Formula 1 World Championship Regulations</span>
+        <span>PaceTracer Telemetry &copy; 2025 | FIA Formula 1 World Championship</span>
         <span>24-Round Live Replay & Precision Telemetry Platform</span>
       </footer>
     </div>

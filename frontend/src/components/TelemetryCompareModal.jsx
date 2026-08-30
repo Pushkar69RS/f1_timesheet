@@ -47,13 +47,13 @@ export default function TelemetryCompareModal({
   const bestLapB = driverB.bestLapTime;
   const lapDelta = (bestLapA && bestLapB) ? (bestLapA - bestLapB) : null;
 
-  // 2026 Telemetry derivations
-  const speedA = driverA.speed || 315;
-  const speedB = driverB.speed || 312;
-  const batteryA = driverA.batteryPct ?? 88;
-  const batteryB = driverB.batteryPct ?? 76;
-  const aeroModeA = driverA.aeroMode || 'Z-Mode (Low Drag)';
-  const aeroModeB = driverB.aeroMode || 'Z-Mode (Low Drag)';
+  // 2025 Telemetry derivations
+  const speedA = driverA.speed || 318;
+  const speedB = driverB.speed || 315;
+  const batteryA = driverA.batteryPct ?? 92;
+  const batteryB = driverB.batteryPct ?? 84;
+  const drsStatusA = (driverA.position && driverA.position > 1) ? 'DRS Active (Open)' : 'DRS Available';
+  const drsStatusB = (driverB.position && driverB.position > 1) ? 'DRS Active (Open)' : 'DRS Available';
 
   const setRivalry = (idA, idB) => {
     setDriverAId(String(idA));
@@ -72,7 +72,7 @@ export default function TelemetryCompareModal({
                 Head-to-Head Telemetry Comparison
               </h3>
               <p className="text-xs text-gray-500 font-mono">
-                Compare real-time pace, sector transponders, tyre stints, and 2026 hybrid battery deployment.
+                Compare real-time pace, sector transponders, tyre stints, and 2025 hybrid battery deployment.
               </p>
             </div>
           </div>
@@ -107,74 +107,86 @@ export default function TelemetryCompareModal({
           </button>
           <button
             onClick={() => setRivalry(27, 5)}
-            className="px-2.5 py-1 rounded bg-red-900/20 hover:bg-red-900/40 text-red-400 font-bold border border-red-800/30 transition-all text-[11px]"
+            className="px-2.5 py-1 rounded bg-green-600/15 hover:bg-green-600/30 text-green-400 font-bold border border-green-500/30 transition-all text-[11px]"
           >
-            🔴 Audi: Hülkenberg vs Bortoleto
+            🟢 Stake Sauber: Hülkenberg vs Bortoleto
           </button>
         </div>
 
         {/* Modal Body */}
-        <div className="p-4 md:p-6 overflow-y-auto space-y-6">
-          {/* Driver Selection Cards */}
-          <div className="grid grid-cols-2 gap-4 md:gap-6">
+        <div className="p-4 md:p-6 overflow-y-auto space-y-6 flex-grow">
+          {/* Driver Selection Cards Grid */}
+          <div className="grid grid-cols-2 gap-4">
             {/* Driver A Card */}
-            <div className="p-4 rounded-xl bg-gray-50 dark:bg-gray-900/90 border border-gray-200 dark:border-gray-800 flex flex-col items-center text-center shadow-sm">
-              <label className="text-[10px] text-gray-500 uppercase font-mono mb-1 self-start font-bold">Select Driver A</label>
+            <div className="p-4 rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 flex flex-col items-center text-center space-y-3">
+              <label className="text-gray-500 dark:text-gray-400 text-[10px] uppercase font-bold tracking-wider">
+                Select Driver A
+              </label>
               <select
-                value={String(driverA.driverId || driverA.number)}
+                value={driverAId}
                 onChange={(e) => setDriverAId(e.target.value)}
-                className="w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white text-xs font-bold p-2 rounded-lg mb-3 focus:outline-none focus:ring-2 focus:ring-red-500"
+                className="w-full text-xs font-bold p-2 rounded-lg bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white"
               >
-                {driverList.map(d => (
-                  <option key={d.driverId || d.number} value={String(d.driverId || d.number)}>
-                    #{d.number} {d.driverName} ({d.team})
+                {driverList.map((d) => (
+                  <option key={d.driverId || d.number} value={d.driverId || d.number}>
+                    #{d.number} {d.driverName || d.full_name} ({d.team || d.team_name})
                   </option>
                 ))}
               </select>
 
-              <DriverAvatar driver={driverA} size="xl" />
-              <h4 className="font-black text-base text-gray-900 dark:text-white mt-2">
-                {driverA.driverName}
-              </h4>
-              <span
-                className="text-[11px] font-bold px-2 py-0.5 rounded text-white mt-1 shadow-sm"
-                style={{ backgroundColor: colorA }}
-              >
-                {driverA.team} #{driverA.number}
-              </span>
-              <span className="text-xs font-mono font-bold text-gray-500 mt-2">
-                Position: <span className="text-gray-900 dark:text-white font-black">P{driverA.position || 1}</span>
-              </span>
+              <DriverAvatar driver={driverA} size="lg" />
+              <div>
+                <h4 className="text-base font-black text-gray-900 dark:text-white">
+                  {driverA.driverName || driverA.full_name}
+                </h4>
+                <div className="flex items-center justify-center gap-1.5 mt-1">
+                  <span
+                    className="text-[10px] font-bold font-mono px-2 py-0.5 rounded text-white shadow-sm"
+                    style={{ backgroundColor: colorA }}
+                  >
+                    {driverA.team} #{driverA.number}
+                  </span>
+                </div>
+                <span className="text-xs font-mono font-bold text-gray-500 dark:text-gray-400 block mt-1">
+                  Position: <strong className="text-gray-900 dark:text-white">{driverA.position ? `P${driverA.position}` : '—'}</strong>
+                </span>
+              </div>
             </div>
 
             {/* Driver B Card */}
-            <div className="p-4 rounded-xl bg-gray-50 dark:bg-gray-900/90 border border-gray-200 dark:border-gray-800 flex flex-col items-center text-center shadow-sm">
-              <label className="text-[10px] text-gray-500 uppercase font-mono mb-1 self-start font-bold">Select Driver B</label>
+            <div className="p-4 rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 flex flex-col items-center text-center space-y-3">
+              <label className="text-gray-500 dark:text-gray-400 text-[10px] uppercase font-bold tracking-wider">
+                Select Driver B
+              </label>
               <select
-                value={String(driverB.driverId || driverB.number)}
+                value={driverBId}
                 onChange={(e) => setDriverBId(e.target.value)}
-                className="w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white text-xs font-bold p-2 rounded-lg mb-3 focus:outline-none focus:ring-2 focus:ring-red-500"
+                className="w-full text-xs font-bold p-2 rounded-lg bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white"
               >
-                {driverList.map(d => (
-                  <option key={d.driverId || d.number} value={String(d.driverId || d.number)}>
-                    #{d.number} {d.driverName} ({d.team})
+                {driverList.map((d) => (
+                  <option key={d.driverId || d.number} value={d.driverId || d.number}>
+                    #{d.number} {d.driverName || d.full_name} ({d.team || d.team_name})
                   </option>
                 ))}
               </select>
 
-              <DriverAvatar driver={driverB} size="xl" />
-              <h4 className="font-black text-base text-gray-900 dark:text-white mt-2">
-                {driverB.driverName}
-              </h4>
-              <span
-                className="text-[11px] font-bold px-2 py-0.5 rounded text-white mt-1 shadow-sm"
-                style={{ backgroundColor: colorB }}
-              >
-                {driverB.team} #{driverB.number}
-              </span>
-              <span className="text-xs font-mono font-bold text-gray-500 mt-2">
-                Position: <span className="text-gray-900 dark:text-white font-black">P{driverB.position || 2}</span>
-              </span>
+              <DriverAvatar driver={driverB} size="lg" />
+              <div>
+                <h4 className="text-base font-black text-gray-900 dark:text-white">
+                  {driverB.driverName || driverB.full_name}
+                </h4>
+                <div className="flex items-center justify-center gap-1.5 mt-1">
+                  <span
+                    className="text-[10px] font-bold font-mono px-2 py-0.5 rounded text-white shadow-sm"
+                    style={{ backgroundColor: colorB }}
+                  >
+                    {driverB.team} #{driverB.number}
+                  </span>
+                </div>
+                <span className="text-xs font-mono font-bold text-gray-500 dark:text-gray-400 block mt-1">
+                  Position: <strong className="text-gray-900 dark:text-white">{driverB.position ? `P${driverB.position}` : '—'}</strong>
+                </span>
+              </div>
             </div>
           </div>
 
@@ -186,8 +198,8 @@ export default function TelemetryCompareModal({
             {lapDelta !== null ? (
               <span className={`text-base font-black ${lapDelta < 0 ? 'text-green-500' : 'text-red-500'}`}>
                 {lapDelta < 0
-                  ? `${driverA.driverName} is -${Math.abs(lapDelta).toFixed(3)}s faster`
-                  : `${driverB.driverName} is -${Math.abs(lapDelta).toFixed(3)}s faster`}
+                  ? `${driverA.driverName || 'Driver A'} is -${Math.abs(lapDelta).toFixed(3)}s faster`
+                  : `${driverB.driverName || 'Driver B'} is -${Math.abs(lapDelta).toFixed(3)}s faster`}
               </span>
             ) : (
               <span className="text-gray-400 text-xs italic">
@@ -201,9 +213,9 @@ export default function TelemetryCompareModal({
             <table className="w-full">
               <thead className="bg-gray-100 dark:bg-gray-900 text-gray-500 uppercase text-[10px]">
                 <tr>
-                  <th className="py-2.5 px-4 text-left">{driverA.driverName}</th>
+                  <th className="py-2.5 px-4 text-left">{driverA.driverName || 'Driver A'}</th>
                   <th className="py-2.5 px-4 text-center">Telemetry Metric</th>
-                  <th className="py-2.5 px-4 text-right">{driverB.driverName}</th>
+                  <th className="py-2.5 px-4 text-right">{driverB.driverName || 'Driver B'}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200 dark:divide-gray-800 text-gray-900 dark:text-gray-200">
@@ -251,28 +263,28 @@ export default function TelemetryCompareModal({
                 <tr>
                   <td className="py-2.5 px-4">
                     {tyreStyleA ? (
-                      <span className="inline-flex items-center gap-1.5 font-bold">
-                        <span className="w-4 h-4 rounded-full flex items-center justify-center text-[10px]" style={{ backgroundColor: tyreStyleA.bg, color: tyreStyleA.text }}>
-                          {tyreStyleA.label}
-                        </span>
-                        {driverA.tyres || 'MEDIUM'}
+                      <span
+                        className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-bold shadow-xs"
+                        style={{ backgroundColor: tyreStyleA.bg, color: tyreStyleA.text }}
+                      >
+                        {tyreStyleA.label} {driverA.tyres}
                       </span>
-                    ) : 'MEDIUM'}
+                    ) : 'SOFT'}
                   </td>
                   <td className="py-2.5 px-4 text-center text-gray-500 text-[11px] font-bold">Current Tyre</td>
                   <td className="py-2.5 px-4 text-right">
                     {tyreStyleB ? (
-                      <span className="inline-flex items-center justify-end gap-1.5 font-bold">
-                        {driverB.tyres || 'MEDIUM'}
-                        <span className="w-4 h-4 rounded-full flex items-center justify-center text-[10px]" style={{ backgroundColor: tyreStyleB.bg, color: tyreStyleB.text }}>
-                          {tyreStyleB.label}
-                        </span>
+                      <span
+                        className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-bold shadow-xs"
+                        style={{ backgroundColor: tyreStyleB.bg, color: tyreStyleB.text }}
+                      >
+                        {tyreStyleB.label} {driverB.tyres}
                       </span>
                     ) : 'MEDIUM'}
                   </td>
                 </tr>
 
-                {/* 2026 MGU-K Hybrid Energy SoC */}
+                {/* 2025 MGU-K Hybrid Energy SoC */}
                 <tr>
                   <td className="py-2.5 px-4">
                     <div className="flex items-center gap-2">
@@ -282,7 +294,7 @@ export default function TelemetryCompareModal({
                       <span className="font-bold text-emerald-500">{batteryA}%</span>
                     </div>
                   </td>
-                  <td className="py-2.5 px-4 text-center text-emerald-500 text-[11px] font-bold">2026 MGU-K Battery</td>
+                  <td className="py-2.5 px-4 text-center text-emerald-500 text-[11px] font-bold">120kW MGU-K Battery</td>
                   <td className="py-2.5 px-4 text-right">
                     <div className="flex items-center justify-end gap-2">
                       <span className="font-bold text-emerald-500">{batteryB}%</span>
@@ -293,11 +305,11 @@ export default function TelemetryCompareModal({
                   </td>
                 </tr>
 
-                {/* 2026 Active Aero State */}
+                {/* 2025 DRS Status */}
                 <tr>
-                  <td className="py-2.5 px-4 font-bold text-cyan-400">{aeroModeA}</td>
-                  <td className="py-2.5 px-4 text-center text-cyan-400 text-[11px] font-bold">Active Aero State</td>
-                  <td className="py-2.5 px-4 text-right font-bold text-cyan-400">{aeroModeB}</td>
+                  <td className="py-2.5 px-4 font-bold text-cyan-400">{drsStatusA}</td>
+                  <td className="py-2.5 px-4 text-center text-cyan-400 text-[11px] font-bold">DRS Wing State</td>
+                  <td className="py-2.5 px-4 text-right font-bold text-cyan-400">{drsStatusB}</td>
                 </tr>
 
                 {/* Speed Trap */}

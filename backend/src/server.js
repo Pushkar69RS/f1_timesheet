@@ -23,7 +23,7 @@ app.use((req, res, next) => {
   next();
 });
 
-const { SEASON_2026_CALENDAR, DRIVERS_2026 } = require('./season2026');
+const { SEASON_2025_CALENDAR, DRIVERS_2025 } = require('./season2025');
 
 // API Endpoints
 app.get('/api/snapshot', (req, res) => {
@@ -34,12 +34,21 @@ app.get('/api/session-info', (req, res) => {
   res.json(replayEngine.getSessionInfo());
 });
 
+app.get('/api/calendar-2025', (req, res) => {
+  res.json(SEASON_2025_CALENDAR);
+});
+
+app.get('/api/drivers-2025', (req, res) => {
+  res.json(DRIVERS_2025);
+});
+
+// Backward compatibility routes
 app.get('/api/calendar-2026', (req, res) => {
-  res.json(SEASON_2026_CALENDAR);
+  res.json(SEASON_2025_CALENDAR);
 });
 
 app.get('/api/drivers-2026', (req, res) => {
-  res.json(DRIVERS_2026);
+  res.json(DRIVERS_2025);
 });
 
 app.post('/api/load-session', async (req, res) => {

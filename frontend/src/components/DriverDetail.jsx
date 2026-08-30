@@ -18,10 +18,10 @@ const DriverDetail = ({ driver, onOpenCompare = () => {} }) => {
   const teamName = driver.team || driver.team_name || 'Unknown';
   const tyreStyle = getTyreStyle(driver.tyres);
 
-  // 2026 Telemetry Simulation parameters
+  // 2025 Telemetry Simulation parameters
   const speedTrap = (315 + ((driverNumber * 3) % 25)).toFixed(1);
-  const batteryPct = Math.min(100, Math.max(15, 88 - ((driver.lapNumber || 1) % 10) * 6));
-  const activeAero = (driver.position && driver.position % 2 === 0) ? 'X-MODE (LOW DRAG)' : 'Z-MODE (HIGH DF)';
+  const batteryPct = Math.min(100, Math.max(15, 92 - ((driver.lapNumber || 1) % 10) * 5));
+  const drsStatus = (driver.position && driver.position > 1 && (driver.lapNumber || 1) > 1) ? 'DRS ACTIVE (OPEN)' : 'DRS AVAILABLE';
 
   return (
     <div className="bg-white dark:bg-[#111622] p-5 rounded-xl shadow-lg border border-gray-200 dark:border-gray-800 transition-colors font-sans">
@@ -99,15 +99,17 @@ const DriverDetail = ({ driver, onOpenCompare = () => {} }) => {
         </div>
       </div>
 
-      {/* 2026 Aero & Hybrid Battery Indicators */}
+      {/* 2025 DRS & Hybrid Battery Indicators */}
       <div className="mt-3 p-2.5 rounded-lg bg-gray-50 dark:bg-gray-950/80 border border-gray-200 dark:border-gray-800/80 text-[11px] font-mono space-y-2">
         <div className="flex justify-between items-center">
-          <span className="text-gray-500 dark:text-gray-400">2026 Active Aero:</span>
-          <span className="font-bold text-[#FFB800]">{activeAero}</span>
+          <span className="text-gray-500 dark:text-gray-400">DRS Wing Status:</span>
+          <span className={`font-bold ${drsStatus.includes('ACTIVE') ? 'text-green-500 animate-pulse' : 'text-cyan-400'}`}>
+            {drsStatus}
+          </span>
         </div>
         <div>
           <div className="flex justify-between items-center text-[10px] mb-1">
-            <span className="text-gray-500 dark:text-gray-400">350kW MGU-K Hybrid Energy:</span>
+            <span className="text-gray-500 dark:text-gray-400">120kW MGU-K Hybrid Energy:</span>
             <span className="text-green-500 dark:text-green-400 font-bold">{batteryPct}% SoC</span>
           </div>
           <div className="w-full bg-gray-200 dark:bg-gray-800 rounded-full h-1.5 overflow-hidden">

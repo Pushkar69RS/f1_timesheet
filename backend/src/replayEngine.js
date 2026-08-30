@@ -4,7 +4,7 @@ const path = require('path');
 const fetch = require('node-fetch');
 const { normalizeOpenF1 } = require('./normalize');
 const { getCircuit, interpolateTrackPosition } = require('./circuitData');
-const { SEASON_2026_CALENDAR, DRIVERS_2026, generate2026RaceData } = require('./season2026');
+const { SEASON_2025_CALENDAR, DRIVERS_2025, generate2025RaceData } = require('./season2025');
 
 const DEFAULT_RACE_DATA_PATH = path.join(__dirname, '../raceData.json');
 const OPENF1_BASE = process.env.OPENF1_BASE || 'https://api.openf1.org/v1';
@@ -120,20 +120,22 @@ class ReplayEngine {
     this.stopReplay();
     let rawData;
 
-    if (sessionKey && String(sessionKey).startsWith('2026')) {
-      console.log(`Loading 2026 Grand Prix session: ${sessionKey}`);
-      rawData = generate2026RaceData(sessionKey);
-    } else if (forceOffline || !sessionKey) {
+    const normalizedKey = sessionKey ? String(sessionKey).replace(/^2026-/, '2025-') : null;
+
+    if (normalizedKey && String(normalizedKey).startsWith('2025')) {
+      console.log(`Loading 2025 Grand Prix session: ${normalizedKey}`);
+      rawData = generate2025RaceData(normalizedKey);
+    } else if (forceOffline || !normalizedKey) {
       console.log('Loading session data from local file:', DEFAULT_RACE_DATA_PATH);
       try {
         rawData = JSON.parse(fs.readFileSync(DEFAULT_RACE_DATA_PATH, 'utf8'));
       } catch {
-        console.log('Fallback to 2026 British Grand Prix session data.');
-        rawData = generate2026RaceData('2026-12');
+        console.log('Fallback to 2025 British Grand Prix session data.');
+        rawData = generate2025RaceData('2025-12');
       }
     } else {
-      const fetchedData = await this._fetchFromApi(sessionKey);
-      rawData = fetchedData || generate2026RaceData('2026-12');
+      const fetchedData = await this._fetchFromApi(normalizedKey);
+      rawData = fetchedData || generate2025RaceData('2025-12');
     }
 
     this.events = normalizeOpenF1(rawData);
