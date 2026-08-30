@@ -146,7 +146,7 @@ export default function RadioSoundboardModal({ isOpen, onClose }) {
 
     // 2. Play Authentic Broadcast Recording MP3
     try {
-      const audio = new Audio(`/audio/${item.audioFile}`);
+      const audio = new Audio(`/audio/${item.audioFile}?t=${Date.now()}`);
       currentAudioRef.current = audio;
       audio.volume = soundFX.isMuted ? 0 : 0.9;
 

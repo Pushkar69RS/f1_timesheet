@@ -42,7 +42,7 @@ export function useF1EasterEggs({ onOpenReactionGame, onOpenRadioSoundboard }) {
       if (e.shiftKey && (e.code === 'KeyH' || e.key === 'H' || e.key === 'h')) {
         soundFX.playRadioChirp();
         try {
-          const audio = new Audio('/audio/radio_driver_44.mp3');
+          const audio = new Audio(`/audio/radio_driver_44.mp3?t=${Date.now()}`);
           audio.volume = soundFX.isMuted ? 0 : 0.85;
           audio.play().catch(() => {
             soundFX.speakRadioVoice('Lewis, it is Hammertime! Push now, push now!');
@@ -57,7 +57,7 @@ export function useF1EasterEggs({ onOpenReactionGame, onOpenRadioSoundboard }) {
       if (e.shiftKey && (e.code === 'KeyS' || e.key === 'S' || e.key === 's')) {
         soundFX.playRadioChirp();
         try {
-          const audio = new Audio('/audio/radio_driver_55.mp3');
+          const audio = new Audio(`/audio/radio_driver_55.mp3?t=${Date.now()}`);
           audio.volume = soundFX.isMuted ? 0 : 0.85;
           audio.play().catch(() => {
             soundFX.speakRadioVoice('Smooth operator, smooth operator!');
@@ -72,7 +72,7 @@ export function useF1EasterEggs({ onOpenReactionGame, onOpenRadioSoundboard }) {
       if (e.shiftKey && (e.code === 'KeyV' || e.key === 'V' || e.key === 'v')) {
         soundFX.playRadioChirp();
         try {
-          const audio = new Audio('/audio/radio_driver_1.mp3');
+          const audio = new Audio(`/audio/radio_driver_1.mp3?t=${Date.now()}`);
           audio.volume = soundFX.isMuted ? 0 : 0.85;
           audio.play().catch(() => {
             soundFX.speakRadioVoice('Ha ha yes boys! That was simply lovely!');
