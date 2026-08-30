@@ -279,11 +279,12 @@ class ReplayEngine {
     }
   }
 
-  seekReplay(progress) {
+  seekReplay(progress, autoResume = undefined) {
+    const wasPlaying = !this.isPaused;
     this.stopReplay();
-    this.isPaused = true;
 
-    const targetEventTimeMs = this.sessionEventStartTime + (this.totalDurationMs * (progress / 100));
+    const clampedProgress = Math.min(100, Math.max(0, parseFloat(progress) || 0));
+    const targetEventTimeMs = this.sessionEventStartTime + (this.totalDurationMs * (clampedProgress / 100));
     let targetIndex = 0;
     for (let i = 0; i < this.events.length; i++) {
       if (this.events[i].timestamp.getTime() >= targetEventTimeMs) {
@@ -305,11 +306,11 @@ class ReplayEngine {
 
     // Re-evaluate active lap
     const totalLaps = this.sessionInfo?.session_laps || 52;
-    const estimatedLap = Math.min(totalLaps, Math.max(1, Math.floor((progress / 100) * totalLaps) + 1));
+    const estimatedLap = Math.min(totalLaps, Math.max(1, Math.floor((clampedProgress / 100) * totalLaps) + 1));
     const snapshotLaps = Object.values(this.currentSnapshot).map(d => d.lapNumber || 0);
     this.activeLapNumber = Math.max(estimatedLap, ...snapshotLaps);
 
-    this.updateTrackCoordinates(progress / 100);
+    this.updateTrackCoordinates(clampedProgress / 100);
 
     const actualSeekedEventTime = this.events[this.currentEventIndex]?.timestamp?.getTime();
     if (!isNaN(actualSeekedEventTime)) {
@@ -319,6 +320,15 @@ class ReplayEngine {
       this.replayStartTime = Date.now();
     }
 
+    const shouldResume = autoResume !== undefined ? autoResume : wasPlaying;
+
+    if (shouldResume && this.currentEventIndex < this.events.length) {
+      this.isPaused = false;
+      this.startReplay();
+    } else {
+      this.isPaused = true;
+    }
+
     this.broadcast({
       type: 'snapshot',
       payload: this.currentSnapshot
@@ -326,7 +336,7 @@ class ReplayEngine {
     this.broadcast({
       type: 'control_state',
       payload: {
-        isPaused: true,
+        isPaused: this.isPaused,
         replaySpeed: this.replaySpeed,
         progress: this.getProgress(),
         currentLap: this.getCurrentLap(),

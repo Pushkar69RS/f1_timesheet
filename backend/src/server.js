@@ -94,7 +94,7 @@ wss.on('connection', ws => {
             replayEngine.pauseReplay();
             break;
           case 'seek':
-            replayEngine.seekReplay(payload.progress);
+            replayEngine.seekReplay(payload.progress, payload.autoResume);
             break;
           case 'speed':
             replayEngine.setSpeed(payload.speed);

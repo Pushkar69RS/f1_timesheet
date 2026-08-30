@@ -58,7 +58,7 @@ function Dashboard() {
   const [progress, setProgress] = useState(0);
   const [currentLap, setCurrentLap] = useState(1);
   const [totalLaps, setTotalLaps] = useState(52);
-  const [_totalDurationMs, setTotalDurationMs] = useState(0);
+  const [totalDurationMs, setTotalDurationMs] = useState(5400000);
   const [selectedDriverId, setSelectedDriverId] = useState(null);
   const [darkMode, setDarkMode] = useState(true);
   const [globalBestLap, setGlobalBestLap] = useState(null);
@@ -272,8 +272,8 @@ function Dashboard() {
     sendControlMessage('speed', { speed });
   };
 
-  const handleSeek = (newProgress) => {
-    sendControlMessage('seek', { progress: newProgress });
+  const handleSeek = (newProgress, autoResume = undefined) => {
+    sendControlMessage('seek', { progress: newProgress, autoResume });
   };
 
   const handleRestart = () => {
@@ -389,20 +389,24 @@ function Dashboard() {
             onDriverSelect={handleDriverSelect}
           />
 
-          {/* Playback Controls & Multiplier */}
+          {/* Video Player Progress Timeline Scrubber */}
+          <ProgressBar
+            progress={progress}
+            currentLap={currentLap}
+            totalLaps={totalLaps}
+            isPaused={isPaused}
+            onSeek={handleSeek}
+            totalDurationMs={totalDurationMs}
+          />
+
+          {/* Playback Controls & Multiplier Deck */}
           <Controls
             isPaused={isPaused}
             replaySpeed={replaySpeed}
-            currentLap={currentLap}
-            totalLaps={totalLaps}
-            progress={progress}
             onPlayPause={handlePlayPause}
             onSpeedChange={handleSpeedChange}
             onRestart={handleRestart}
           />
-
-          {/* Progress Timeline Scrubber */}
-          <ProgressBar progress={progress} onSeek={handleSeek} currentLap={currentLap} totalLaps={totalLaps} />
 
           {/* Race Control Live Incident & Overtake Feed */}
           <RaceControlFeed
