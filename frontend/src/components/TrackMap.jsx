@@ -1,6 +1,7 @@
 import { useRef, useEffect, useCallback, useState } from 'react';
-import { getTeamColor } from '../utils/teamColors';
+import { getTeamColor, getTyreStyle } from '../utils/teamColors';
 import { getCircuit } from '../utils/circuitData';
+import { formatTime } from '../utils/formatTime';
 
 function getSplinePoint(pts, progress) {
   if (!pts || pts.length === 0) return { x: 400, y: 400 };
@@ -38,11 +39,13 @@ export default function TrackMap({
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const [showCorners, setShowCorners] = useState(true);
   const [showDrs, setShowDrs] = useState(true);
+  const [showSectors, setShowSectors] = useState(true);
+  const [showKerbs, setShowKerbs] = useState(true);
   const animFrameRef = useRef(null);
   const driverRenderPosRef = useRef({});
 
   const circuitNameKey = sessionInfo?.circuit_short_name || sessionInfo?.name || 'Silverstone';
-  const circuit = sessionInfo?.circuit || getCircuit(circuitNameKey);
+  const circuit = getCircuit(circuitNameKey);
   const circuitPath = circuit?.path && circuit.path.length > 0 ? circuit.path : getCircuit('Silverstone').path;
   const circuitName = circuit?.name || sessionInfo?.circuit_short_name || 'Silverstone Circuit';
 
@@ -77,7 +80,7 @@ export default function TrackMap({
       if (pt.y > maxY) maxY = pt.y;
     });
 
-    const padding = 55;
+    const padding = 65;
     const pathWidth = maxX - minX || 1;
     const pathHeight = maxY - minY || 1;
     const scale = Math.min((width - padding * 2) / pathWidth, (height - padding * 2) / pathHeight);
@@ -93,10 +96,10 @@ export default function TrackMap({
     // Detect dark mode
     const isDark = document.documentElement.classList.contains('dark');
 
-    // 1. Draw Asphalt Base Outline
+    // 1. Draw Asphalt Run-off Foundation
     ctx.beginPath();
-    ctx.strokeStyle = isDark ? '#1C2433' : '#E5E7EB';
-    ctx.lineWidth = 14;
+    ctx.strokeStyle = isDark ? '#141A26' : '#E2E8F0';
+    ctx.lineWidth = 20;
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
     dense.forEach((pt, i) => {
@@ -108,77 +111,198 @@ export default function TrackMap({
     ctx.closePath();
     ctx.stroke();
 
-    // 2. Draw Track Surface Core
-    ctx.beginPath();
-    ctx.strokeStyle = isDark ? '#2D3748' : '#9CA3AF';
-    ctx.lineWidth = 8;
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
-    dense.forEach((pt, i) => {
-      const cx = toCanvasX(pt.x);
-      const cy = toCanvasY(pt.y);
-      if (i === 0) ctx.moveTo(cx, cy);
-      else ctx.lineTo(cx, cy);
-    });
-    ctx.closePath();
-    ctx.stroke();
-
-    // 3. Draw Sectors (Cyan S1, Gold S2, Purple S3)
-    const sectorColors = circuit?.sectors || [
-      { color: '#00D2BE', startPct: 0.0, endPct: 0.32 },
-      { color: '#FFB800', startPct: 0.32, endPct: 0.68 },
-      { color: '#BF5AF2', startPct: 0.68, endPct: 1.0 },
-    ];
-
-    sectorColors.forEach((sec) => {
-      ctx.beginPath();
-      ctx.strokeStyle = sec.color;
-      ctx.lineWidth = 3.5;
-      ctx.lineCap = 'round';
-
-      const startIdx = Math.floor(sec.startPct * dense.length);
-      const endIdx = Math.floor(sec.endPct * dense.length);
-
-      for (let i = startIdx; i <= endIdx && i < dense.length; i++) {
+    // 2. Draw Apex Red-White Kerbs
+    if (showKerbs) {
+      for (let i = 0; i < dense.length; i += 3) {
         const pt = dense[i];
-        const cx = toCanvasX(pt.x);
-        const cy = toCanvasY(pt.y);
-        if (i === startIdx) ctx.moveTo(cx, cy);
-        else ctx.lineTo(cx, cy);
-      }
-      ctx.stroke();
-    });
+        const nextPt = dense[(i + 1) % dense.length];
+        const dx = nextPt.x - pt.x;
+        const dy = nextPt.y - pt.y;
+        const len = Math.hypot(dx, dy) || 1;
+        const nx = -dy / len;
+        const ny = dx / len;
 
-    // 4. Draw DRS Zones if enabled
-    if (showDrs && circuit?.drsZonesList) {
-      circuit.drsZonesList.forEach(drs => {
+        const isRed = Math.floor(i / 3) % 2 === 0;
+        ctx.strokeStyle = isRed ? '#E10600' : '#FFFFFF';
+        ctx.lineWidth = 3;
+
+        const kx1 = toCanvasX(pt.x + nx * 7);
+        const ky1 = toCanvasY(pt.y + ny * 7);
+        const kx2 = toCanvasX(nextPt.x + nx * 7);
+        const ky2 = toCanvasY(nextPt.y + ny * 7);
+
         ctx.beginPath();
-        ctx.strokeStyle = '#00FF66';
-        ctx.lineWidth = 5;
-        ctx.shadowColor = '#00FF66';
-        ctx.shadowBlur = 8;
-        const sIdx = Math.floor(drs.startPct * dense.length);
-        const eIdx = Math.floor(drs.endPct * dense.length);
-        for (let i = sIdx; i <= eIdx && i < dense.length; i++) {
+        ctx.moveTo(kx1, ky1);
+        ctx.lineTo(kx2, ky2);
+        ctx.stroke();
+      }
+    }
+
+    // 3. Draw Track Main Racing Asphalt Surface
+    ctx.beginPath();
+    ctx.strokeStyle = isDark ? '#232C3D' : '#64748B';
+    ctx.lineWidth = 12;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    dense.forEach((pt, i) => {
+      const cx = toCanvasX(pt.x);
+      const cy = toCanvasY(pt.y);
+      if (i === 0) ctx.moveTo(cx, cy);
+      else ctx.lineTo(cx, cy);
+    });
+    ctx.closePath();
+    ctx.stroke();
+
+    // 4. Draw Sector Lines (S1 Cyan #00D2BE, S2 Gold #FFB800, S3 Purple #BF5AF2)
+    if (showSectors) {
+      const sectorColors = circuit?.sectors || [
+        { color: '#00D2BE', startPct: 0.0, endPct: 0.30, name: 'Sector 1' },
+        { color: '#FFB800', startPct: 0.30, endPct: 0.68, name: 'Sector 2' },
+        { color: '#BF5AF2', startPct: 0.68, endPct: 1.00, name: 'Sector 3' },
+      ];
+
+      sectorColors.forEach((sec) => {
+        ctx.beginPath();
+        ctx.strokeStyle = sec.color;
+        ctx.lineWidth = 4;
+        ctx.lineCap = 'round';
+        ctx.shadowColor = sec.color;
+        ctx.shadowBlur = 6;
+
+        const startIdx = Math.floor(sec.startPct * dense.length);
+        const endIdx = Math.floor(sec.endPct * dense.length);
+
+        for (let i = startIdx; i <= endIdx && i < dense.length; i++) {
           const pt = dense[i];
           const cx = toCanvasX(pt.x);
           const cy = toCanvasY(pt.y);
-          if (i === sIdx) ctx.moveTo(cx, cy);
+          if (i === startIdx) ctx.moveTo(cx, cy);
           else ctx.lineTo(cx, cy);
         }
         ctx.stroke();
-        ctx.shadowBlur = 0; // reset
+        ctx.shadowBlur = 0;
+      });
+
+      // Draw Sector Split Transponder Gates
+      sectorColors.forEach((sec, idx) => {
+        if (idx === 0) return; // Skip start/finish
+        const splitPt = getSplinePoint(circuitPath, sec.startPct);
+        const sx = toCanvasX(splitPt.x);
+        const sy = toCanvasY(splitPt.y);
+
+        // Transponder Split Gate Line
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(sx, sy, 4, 0, Math.PI * 2);
+        ctx.fillStyle = sec.color;
+        ctx.shadowColor = sec.color;
+        ctx.shadowBlur = 8;
+        ctx.fill();
+        ctx.restore();
+
+        // Split Gate Text Badge
+        ctx.save();
+        ctx.fillStyle = isDark ? 'rgba(15, 23, 42, 0.9)' : 'rgba(255, 255, 255, 0.95)';
+        ctx.strokeStyle = sec.color;
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.roundRect(sx - 24, sy - 18, 48, 14, 3);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = sec.color;
+        ctx.font = 'bold 8px monospace';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(`S${idx} SPLIT`, sx, sy - 11);
+        ctx.restore();
       });
     }
 
-    // 5. Draw Start / Finish Chequered Line
+    // 5. Draw DRS Zones (Neon Green Glow with DRS Badges)
+    if (showDrs && circuit?.drsZonesList && circuit.drsZonesList.length > 0) {
+      circuit.drsZonesList.forEach((drs) => {
+        ctx.save();
+        ctx.beginPath();
+        ctx.strokeStyle = '#00FF66';
+        ctx.lineWidth = 5.5;
+        ctx.shadowColor = '#00FF66';
+        ctx.shadowBlur = 12;
+        ctx.lineCap = 'round';
+
+        const sIdx = Math.floor(drs.startPct * dense.length);
+        const eIdx = Math.floor(drs.endPct * dense.length);
+
+        if (sIdx <= eIdx) {
+          for (let i = sIdx; i <= eIdx && i < dense.length; i++) {
+            const pt = dense[i];
+            const cx = toCanvasX(pt.x);
+            const cy = toCanvasY(pt.y);
+            if (i === sIdx) ctx.moveTo(cx, cy);
+            else ctx.lineTo(cx, cy);
+          }
+        } else {
+          // Wraps around finish line
+          for (let i = sIdx; i < dense.length; i++) {
+            const pt = dense[i];
+            const cx = toCanvasX(pt.x);
+            const cy = toCanvasY(pt.y);
+            if (i === sIdx) ctx.moveTo(cx, cy);
+            else ctx.lineTo(cx, cy);
+          }
+          for (let i = 0; i <= eIdx; i++) {
+            const pt = dense[i];
+            const cx = toCanvasX(pt.x);
+            const cy = toCanvasY(pt.y);
+            ctx.lineTo(cx, cy);
+          }
+        }
+        ctx.stroke();
+
+        // Draw DRS Zone Text Badge at midpoint
+        const midPct = sIdx <= eIdx ? (drs.startPct + drs.endPct) / 2 : ((drs.startPct + drs.endPct + 1) / 2) % 1;
+        const midPt = getSplinePoint(circuitPath, midPct);
+        const mx = toCanvasX(midPt.x);
+        const my = toCanvasY(midPt.y);
+
+        ctx.fillStyle = isDark ? 'rgba(0, 0, 0, 0.85)' : 'rgba(255, 255, 255, 0.9)';
+        ctx.strokeStyle = '#00FF66';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.roundRect(mx - 15, my - 16, 30, 13, 3);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = '#00FF66';
+        ctx.font = 'bold 8px monospace';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('DRS', mx, my - 9.5);
+
+        // Draw Detection Loop marker if provided
+        if (drs.detectionPct !== undefined) {
+          const detPt = getSplinePoint(circuitPath, drs.detectionPct);
+          const dx = toCanvasX(detPt.x);
+          const dy = toCanvasY(detPt.y);
+
+          ctx.beginPath();
+          ctx.arc(dx, dy, 3, 0, Math.PI * 2);
+          ctx.fillStyle = '#00FF66';
+          ctx.fill();
+        }
+        ctx.restore();
+      });
+    }
+
+    // 6. Draw Start / Finish Line & Grid Box
     if (dense.length > 0) {
       const startPt = dense[0];
       const sX = toCanvasX(startPt.x);
       const sY = toCanvasY(startPt.y);
 
       ctx.save();
-      ctx.fillStyle = '#FFFFFF';
+      // Checkered Start/Finish Marker
+      ctx.fillStyle = isDark ? '#FFFFFF' : '#0F172A';
       ctx.strokeStyle = '#E10600';
       ctx.lineWidth = 2;
       ctx.beginPath();
@@ -186,25 +310,60 @@ export default function TrackMap({
       ctx.fill();
       ctx.stroke();
 
-      ctx.fillStyle = isDark ? '#FFFFFF' : '#111827';
-      ctx.font = 'bold 9px monospace';
-      ctx.fillText('FINISH', sX - 16, sY - 10);
+      // Checkered Flag Icon Badge
+      ctx.fillStyle = isDark ? 'rgba(15, 23, 42, 0.9)' : 'rgba(255, 255, 255, 0.95)';
+      ctx.strokeStyle = '#E10600';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.roundRect(sX - 32, sY - 22, 64, 15, 3);
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = '#E10600';
+      ctx.font = 'bold 8px monospace';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('🏁 FINISH', sX, sY - 14.5);
       ctx.restore();
     }
 
-    // 6. Draw Corner Labels if enabled
-    if (showCorners && circuit?.cornerLabels) {
-      ctx.fillStyle = isDark ? '#94A3B8' : '#4B5563';
-      ctx.font = 'bold 8px sans-serif';
+    // 7. Draw Turn / Corner Names (High-Contrast F1 Broadcast Badges)
+    if (showCorners && circuit?.cornerLabels && circuit.cornerLabels.length > 0) {
       circuit.cornerLabels.forEach(corner => {
         const pt = getSplinePoint(circuitPath, corner.pct);
         const cx = toCanvasX(pt.x);
         const cy = toCanvasY(pt.y);
-        ctx.fillText(corner.name, cx + 7, cy - 7);
+
+        ctx.save();
+        // Dot at apex
+        ctx.beginPath();
+        ctx.arc(cx, cy, 2.5, 0, Math.PI * 2);
+        ctx.fillStyle = isDark ? '#94A3B8' : '#475569';
+        ctx.fill();
+
+        // Corner Pill Label
+        ctx.font = 'bold 8px sans-serif';
+        const textWidth = ctx.measureText(corner.name).width;
+        const badgeWidth = textWidth + 10;
+        const badgeHeight = 14;
+
+        ctx.fillStyle = isDark ? 'rgba(15, 23, 42, 0.88)' : 'rgba(255, 255, 255, 0.95)';
+        ctx.strokeStyle = isDark ? 'rgba(148, 163, 184, 0.4)' : 'rgba(203, 213, 225, 0.8)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.roundRect(cx + 6, cy - 14, badgeWidth, badgeHeight, 3);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = isDark ? '#F1F5F9' : '#0F172A';
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(corner.name, cx + 11, cy - 7);
+        ctx.restore();
       });
     }
 
-    // 7. Draw Driver Markers
+    // 8. Draw Driver Markers (20 Drivers with Team Colors & P1-P5 Badges)
     const driverList = Object.values(drivers);
     driverList.forEach((driver) => {
       const driverId = String(driver.driverId || driver.number);
@@ -272,7 +431,7 @@ export default function TrackMap({
     });
 
     animFrameRef.current = requestAnimationFrame(renderCanvas);
-  }, [circuitPath, circuit, drivers, selectedDriverId, showCorners, showDrs]);
+  }, [circuitPath, circuit, drivers, selectedDriverId, showCorners, showDrs, showSectors, showKerbs]);
 
   useEffect(() => {
     animFrameRef.current = requestAnimationFrame(renderCanvas);
@@ -296,7 +455,7 @@ export default function TrackMap({
       const pos = driverRenderPosRef.current[driverId];
       if (pos) {
         const dist = Math.hypot(pos.x - mx, pos.y - my);
-        if (dist < 15) {
+        if (dist < 16) {
           found = d;
         }
       }
@@ -311,7 +470,7 @@ export default function TrackMap({
   };
 
   return (
-    <div className="relative bg-white dark:bg-[#111622] rounded-xl shadow-2xl overflow-hidden border border-gray-200 dark:border-gray-800 flex flex-col font-sans transition-colors">
+    <div className="relative bg-white dark:bg-[#111622] rounded-2xl shadow-2xl overflow-hidden border border-gray-200 dark:border-gray-800 flex flex-col font-sans transition-colors">
       {/* Header Bar */}
       <div className="p-3.5 px-5 bg-gray-50 dark:bg-[#0B0E14] border-b border-gray-200 dark:border-gray-800 flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2.5">
@@ -320,96 +479,136 @@ export default function TrackMap({
             <h3 className="font-black text-sm uppercase tracking-wider text-gray-900 dark:text-white">
               {circuitName}
             </h3>
-            <span className="text-[11px] font-mono text-gray-500">
-              {circuit?.lengthKm || 5.4} km • {circuit?.corners || 15} Turns • {circuit?.drsZones || 2} DRS Zones
-            </span>
+            <p className="text-[10px] text-gray-500 font-mono">
+              {circuit?.corners || 18} Turns | {circuit?.lengthKm || 5.891} km | {circuit?.drsZones || 2} DRS Zones
+            </p>
           </div>
         </div>
 
-        {/* Interactive Overlays Toggles */}
-        <div className="flex items-center gap-2 text-xs font-mono">
+        {/* Interactive Layer Toggles */}
+        <div className="flex items-center gap-1.5 font-mono text-[10px]">
           <button
-            onClick={() => setShowCorners(!showCorners)}
-            className={`px-2.5 py-1 rounded-md border text-[11px] font-bold transition-all ${
+            onClick={() => setShowCorners(prev => !prev)}
+            className={`px-2.5 py-1 rounded-md border font-bold transition-all ${
               showCorners
-                ? 'bg-blue-600 border-blue-500 text-white shadow-sm'
-                : 'bg-gray-100 dark:bg-gray-800 border-gray-300 dark:border-gray-700 text-gray-600 dark:text-gray-400'
+                ? 'bg-blue-600/15 border-blue-500 text-blue-500 dark:text-blue-400'
+                : 'bg-gray-100 dark:bg-gray-900 border-gray-300 dark:border-gray-700 text-gray-400 opacity-60'
             }`}
+            title="Toggle Turn / Corner Names"
           >
-            Turn Names
+            🚩 Turns
           </button>
+
           <button
-            onClick={() => setShowDrs(!showDrs)}
-            className={`px-2.5 py-1 rounded-md border text-[11px] font-bold transition-all ${
+            onClick={() => setShowDrs(prev => !prev)}
+            className={`px-2.5 py-1 rounded-md border font-bold transition-all ${
               showDrs
-                ? 'bg-emerald-600 border-emerald-500 text-white shadow-sm'
-                : 'bg-gray-100 dark:bg-gray-800 border-gray-300 dark:border-gray-700 text-gray-600 dark:text-gray-400'
+                ? 'bg-green-600/15 border-green-500 text-green-500 dark:text-green-400'
+                : 'bg-gray-100 dark:bg-gray-900 border-gray-300 dark:border-gray-700 text-gray-400 opacity-60'
             }`}
+            title="Toggle DRS Zones"
           >
-            DRS Zones
+            🟢 DRS
+          </button>
+
+          <button
+            onClick={() => setShowSectors(prev => !prev)}
+            className={`px-2.5 py-1 rounded-md border font-bold transition-all ${
+              showSectors
+                ? 'bg-purple-600/15 border-purple-500 text-purple-500 dark:text-purple-400'
+                : 'bg-gray-100 dark:bg-gray-900 border-gray-300 dark:border-gray-700 text-gray-400 opacity-60'
+            }`}
+            title="Toggle S1, S2, S3 Sector Splits"
+          >
+            ⏱️ Sectors
+          </button>
+
+          <button
+            onClick={() => setShowKerbs(prev => !prev)}
+            className={`px-2.5 py-1 rounded-md border font-bold transition-all ${
+              showKerbs
+                ? 'bg-red-600/15 border-red-500 text-red-500 dark:text-red-400'
+                : 'bg-gray-100 dark:bg-gray-900 border-gray-300 dark:border-gray-700 text-gray-400 opacity-60'
+            }`}
+            title="Toggle Apex Kerbs"
+          >
+            🏁 Kerbs
           </button>
         </div>
       </div>
 
       {/* Canvas Area */}
-      <div className="relative w-full h-[480px] bg-gray-50/50 dark:bg-[#07090E] cursor-crosshair">
+      <div className="relative w-full aspect-[4/3] bg-gray-50 dark:bg-[#080B10] flex items-center justify-center overflow-hidden">
         <canvas
           ref={canvasRef}
           width={800}
-          height={480}
+          height={600}
           onMouseMove={handleMouseMove}
           onMouseLeave={() => setHoveredDriver(null)}
           onClick={handleCanvasClick}
-          className="w-full h-full block"
+          className="w-full h-full cursor-crosshair block"
         />
 
-        {/* Hover Tooltip Card */}
+        {/* Hovered Driver Tooltip Card */}
         {hoveredDriver && (
           <div
-            className="absolute pointer-events-none z-30 p-2.5 rounded-lg bg-gray-900/95 text-white shadow-2xl border border-gray-700 text-xs font-mono transform -translate-x-1/2 -translate-y-full mb-3 backdrop-blur-md"
-            style={{
-              left: `${mousePos.x}px`,
-              top: `${mousePos.y}px`,
-            }}
+            className="absolute pointer-events-none z-30 transform -translate-x-1/2 -translate-y-full -mt-3 animate-fadeIn"
+            style={{ left: mousePos.x, top: mousePos.y }}
           >
-            <div className="flex items-center gap-2 mb-1">
-              <span
-                className="w-2.5 h-2.5 rounded-full"
-                style={{ backgroundColor: hoveredDriver.team_colour ? `#${hoveredDriver.team_colour}` : getTeamColor(hoveredDriver.team) }}
-              />
-              <span className="font-black text-sm">#{hoveredDriver.number} {hoveredDriver.driverName}</span>
-              <span className="text-[10px] px-1.5 py-0.5 rounded bg-gray-800 text-gray-300 font-bold">
-                P{hoveredDriver.position}
-              </span>
-            </div>
-            <div className="text-[11px] text-gray-300 space-y-0.5">
-              <div>Team: <span className="text-white font-bold">{hoveredDriver.team}</span></div>
-              <div>Tyre: <span className="text-yellow-400 font-bold">{hoveredDriver.tyres || 'MEDIUM'}</span></div>
-              <div>Lap: <span className="text-white font-bold">{hoveredDriver.lapNumber || 1}</span></div>
+            <div className="p-3 bg-gray-900/95 text-white rounded-xl shadow-2xl border border-gray-700 backdrop-blur-md font-mono text-xs w-48 space-y-1.5">
+              <div className="flex items-center justify-between border-b border-gray-800 pb-1.5">
+                <div className="flex items-center gap-1.5">
+                  <div
+                    className="w-2.5 h-2.5 rounded-full"
+                    style={{ backgroundColor: hoveredDriver.team_colour ? `#${hoveredDriver.team_colour}` : getTeamColor(hoveredDriver.team) }}
+                  />
+                  <span className="font-black text-sm">#{hoveredDriver.number}</span>
+                </div>
+                <span className="font-bold text-amber-400">P{hoveredDriver.position || '—'}</span>
+              </div>
+              <p className="font-bold text-gray-200 truncate">{hoveredDriver.driverName || hoveredDriver.full_name}</p>
+              <p className="text-[10px] text-gray-400">{hoveredDriver.team}</p>
+              <div className="flex justify-between items-center text-[10px] pt-1 border-t border-gray-800">
+                <span className="text-gray-400">Tyre:</span>
+                {(() => {
+                  const style = getTyreStyle(hoveredDriver.tyres);
+                  return style ? (
+                    <span className="px-1.5 py-0.5 rounded font-black text-[9px]" style={{ backgroundColor: style.bg, color: style.text }}>
+                      {style.label} {hoveredDriver.tyres}
+                    </span>
+                  ) : <span>{hoveredDriver.tyres || '—'}</span>;
+                })()}
+              </div>
+              <div className="flex justify-between items-center text-[10px]">
+                <span className="text-gray-400">Best Lap:</span>
+                <span className="font-bold text-[#BF5AF2]">{formatTime(hoveredDriver.bestLapTime)}</span>
+              </div>
             </div>
           </div>
         )}
       </div>
 
       {/* Sector Legend Footer */}
-      <div className="p-2.5 px-4 bg-gray-50 dark:bg-[#0B0E14] border-t border-gray-200 dark:border-gray-800 flex flex-wrap justify-between items-center text-[11px] font-mono text-gray-600 dark:text-gray-400">
+      <div className="p-2.5 px-5 bg-gray-50 dark:bg-[#0B0E14] border-t border-gray-200 dark:border-gray-800 flex flex-wrap justify-between items-center text-[11px] font-mono text-gray-600 dark:text-gray-400">
         <div className="flex items-center gap-4">
-          <span className="flex items-center gap-1.5">
-            <span className="w-3 h-1 rounded-full bg-[#00D2BE]" /> Sector 1
-          </span>
-          <span className="flex items-center gap-1.5">
-            <span className="w-3 h-1 rounded-full bg-[#FFB800]" /> Sector 2
-          </span>
-          <span className="flex items-center gap-1.5">
-            <span className="w-3 h-1 rounded-full bg-[#BF5AF2]" /> Sector 3
-          </span>
-          {showDrs && (
-            <span className="flex items-center gap-1.5 text-emerald-500">
-              <span className="w-3 h-1 rounded-full bg-[#00FF66]" /> DRS Active
-            </span>
-          )}
+          <div className="flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded-full bg-[#00D2BE] shadow-[0_0_6px_#00D2BE]" />
+            <span>Sector 1</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded-full bg-[#FFB800] shadow-[0_0_6px_#FFB800]" />
+            <span>Sector 2</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded-full bg-[#BF5AF2] shadow-[0_0_6px_#BF5AF2]" />
+            <span>Sector 3</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded-full bg-[#00FF66] shadow-[0_0_6px_#00FF66]" />
+            <span>DRS Zone</span>
+          </div>
         </div>
-        <span className="text-[10px] text-gray-400 hidden sm:inline">Click car marker to inspect telemetry</span>
+        <span className="text-gray-400 text-[10px]">Click any driver dot to inspect telemetry</span>
       </div>
     </div>
   );

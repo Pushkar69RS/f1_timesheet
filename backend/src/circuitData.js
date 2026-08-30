@@ -18053,13 +18053,30 @@ const CIRCUITS = {
   }
 };
 
+const { CIRCUIT_EXTENSIONS } = require('./circuitExtensions.js');
+
+function attachExtensions(circuit, key) {
+  if (!circuit) return circuit;
+  const ext = CIRCUIT_EXTENSIONS[key] || {};
+  return {
+    ...circuit,
+    sectors: ext.sectors || circuit.sectors,
+    drsZonesList: ext.drsZonesList || circuit.drsZonesList || [],
+    cornerLabels: ext.cornerLabels || circuit.cornerLabels || []
+  };
+}
+
 function getCircuit(circuitShortName) {
-  if (!circuitShortName) return CIRCUITS['Silverstone'] || Object.values(CIRCUITS)[0];
+  if (!circuitShortName) {
+    return attachExtensions(CIRCUITS['Silverstone'] || Object.values(CIRCUITS)[0], 'Silverstone');
+  }
   const key = Object.keys(CIRCUITS).find(k =>
     circuitShortName.toLowerCase().includes(k.toLowerCase()) ||
     k.toLowerCase().includes(circuitShortName.toLowerCase())
   );
-  return CIRCUITS[key] || CIRCUITS['Silverstone'] || Object.values(CIRCUITS)[0];
+  const foundKey = key || 'Silverstone';
+  const rawCircuit = CIRCUITS[foundKey] || CIRCUITS['Silverstone'] || Object.values(CIRCUITS)[0];
+  return attachExtensions(rawCircuit, foundKey);
 }
 
 function interpolateTrackPosition(circuit, progressFraction, lateralOffset = 0) {
