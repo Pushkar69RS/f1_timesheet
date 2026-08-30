@@ -40,19 +40,46 @@ export function useF1EasterEggs({ onOpenReactionGame, onOpenRadioSoundboard }) {
 
       // 2. Shift + H -> "HAMMERTIME"
       if (e.shiftKey && (e.code === 'KeyH' || e.key === 'H' || e.key === 'h')) {
-        soundFX.speakRadioVoice('Lewis, it is Hammertime! Push now, push now!', { pitch: 0.95, rate: 1.1, lang: 'en-GB' });
+        soundFX.playRadioChirp();
+        try {
+          const audio = new Audio('/audio/radio_driver_44.mp3');
+          audio.volume = soundFX.isMuted ? 0 : 0.85;
+          audio.play().catch(() => {
+            soundFX.speakRadioVoice('Lewis, it is Hammertime! Push now, push now!');
+          });
+        } catch {
+          soundFX.speakRadioVoice('Lewis, it is Hammertime! Push now, push now!');
+        }
         showNotice('🏎️ "LEWIS, IT\'S HAMMERTIME!" — PURPLE SECTOR OVERBOOST');
       }
 
       // 3. Shift + S -> "SMOOTH OPERATOR"
       if (e.shiftKey && (e.code === 'KeyS' || e.key === 'S' || e.key === 's')) {
-        soundFX.speakRadioVoice('Smooth operator, smooth operator!', { pitch: 1.0, rate: 0.95, lang: 'en-US' });
+        soundFX.playRadioChirp();
+        try {
+          const audio = new Audio('/audio/radio_driver_55.mp3');
+          audio.volume = soundFX.isMuted ? 0 : 0.85;
+          audio.play().catch(() => {
+            soundFX.speakRadioVoice('Smooth operator, smooth operator!');
+          });
+        } catch {
+          soundFX.speakRadioVoice('Smooth operator, smooth operator!');
+        }
         showNotice('📻 "SMOOOTH OPERAAATORRR..." — CARLOS SAINZ CRUISE MODE');
       }
 
       // 4. Shift + V -> "SIMPLY LOVELY"
       if (e.shiftKey && (e.code === 'KeyV' || e.key === 'V' || e.key === 'v')) {
-        soundFX.speakRadioVoice('Ha ha yes boys! That was simply lovely! What a car!', { pitch: 1.1, rate: 1.15, lang: 'en-US' });
+        soundFX.playRadioChirp();
+        try {
+          const audio = new Audio('/audio/radio_driver_1.mp3');
+          audio.volume = soundFX.isMuted ? 0 : 0.85;
+          audio.play().catch(() => {
+            soundFX.speakRadioVoice('Ha ha yes boys! That was simply lovely!');
+          });
+        } catch {
+          soundFX.speakRadioVoice('Ha ha yes boys! That was simply lovely!');
+        }
         showNotice('🏆 "SIMPLY LOVELY! HA HA YES BOYS!" — VERSTAPPEN CELEBRATION');
       }
 
